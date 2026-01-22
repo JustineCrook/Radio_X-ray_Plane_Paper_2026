@@ -1,0 +1,28 @@
+## Data from Xian
+
+## SOURCE_METADATA
+# class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
+candidateBH,21.7272646,-3.1790136, [],8.12, "(""gauss"", 8.12, 2.2)", 8.12^{+2.2}_{-1.67}, [https://ui.adsabs.harvard.edu/abs/2024MNRAS.530..424A/abstracts]
+
+## OBS_METADATA
+# xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
+68, [Zhang et al. 2022 & https://ui.adsabs.harvard.edu/abs/2022MNRAS.510.1258Z/abstract], [Zhang et al. 2022 & https://ui.adsabs.harvard.edu/abs/2022MNRAS.510.1258Z/abstract],,
+
+
+
+
+
+## XRAY_DATA
+# obsID, t_xray, dt_xray, Xphase, Xstate, Fx, Fx_unc_l, Fx_unc_u, Fx_uplim, model, fit_stat
+00031234016,59000.5008,0.0096,decay,SS,8.404E-10,3.600E-12,3.600E-12,,tbfeo*cflux*diskbb,chi
+00031234017,59010.8548,0.0137,decay,HS,8.940E-11,1.800E-12,1.800E-12,,tbfeo*cflux*powerlaw,chi
+00031234018,59020.5498,0.0095,decay,HS,1.100E-12,4.000E-13,1.100E-12,,tbfeo*cflux*powerlaw,chi
+
+
+## RADIO_DATA
+# blockID, band, t_radio, dt_radio, Rphase, Rstate, Fr, Fr_unc, Fr_uplim, local_rms, alpha, alpha_unc
+1590975056,L,59001.1292,0.0104,decay,SS,,,0.069,23,,
+1591585260,L,59008.1762,0.0104,decay,HS,0.229,0.031,,26,0.87,0.59
+1592167259,L,59014.8972,0.0104,decay,HS,0.091,0.021,,24,-1.89,1.12
+1592527255,L,59019.0632,0.0104,decay,HS,0.082,0.018,,23,,
+1593213962,L,59027.0132,0.0104,decay,QS,,,0.066,22,,

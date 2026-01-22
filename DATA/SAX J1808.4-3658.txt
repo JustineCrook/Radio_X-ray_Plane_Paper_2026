@@ -1,0 +1,42 @@
+## Data from Kelebogile and Justine -- to be updated
+
+
+
+## SOURCE_METADATA
+# class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
+NS,355.4217,-8.0738, [], 2.7,"(""uniform"", 2.4, 3.6)", 2.4-3.6, [https://ui.adsabs.harvard.edu/abs/2024MNRAS.535..647G/abstract]
+
+## OBS_METADATA
+# xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
+68, [Gasealahwe et al. (in prep.) & ], [Gasealahwe et al. (in prep.) & ],,
+
+
+## XRAY_DATA
+# obsID, t_xray, dt_xray, Xphase, Xstate, Fx, Fx_unc_l, Fx_unc_u, Fx_uplim, model, fit_stat
+0033801024pc,58702.761574,0.01277777778,,HS,2.0451E-11,1.7105E-12,1.9437E-12,,powerlaw+bbodyrad,cstat
+00033801025wt,58704.696458,0.01115740741,,HS,4.6402E-10,8.2799E-12,8.4349E-12,,powerlaw+bbodyrad,cstat
+00030034130wt,58708.472708,0.004490740743,peak/trough,HS,6.3962E-10,1.5786E-11,1.6079E-11,,powerlaw+bbodyrad,cstat
+00030034131wt,58710.397083,0.004351851858,decay,HS,5.5584E-10,1.5069E-11,1.5467E-11,,powerlaw+bbodyrad,cstat
+00030034132wt,58712.653808,0.004791666666,decay,HS,3.6741E-10,1.0962E-11,1.1462E-11,,powerlaw+bbodyrad,cstat
+00030034133pc,58725.075266,0.01039351852,,Unclear,8.2106E-12,8.5956E-13,1.0539E-12,,powerlaw+bbodyrad,cstat
+00030034134pc,58729.016244,1.136770833,decay,Unclear,1.1076E-10,6.9458E-12,7.9357E-12,,powerlaw+bbodyrad,cstat
+00030034150wt,59818.176285,0.01122685185,,HS,2.5741E-10,6.0476E-12,6.1712E-12,,powerlaw+bbodyrad,cstat
+00030034151wt,59819.162222,0.01016203704,,HS,2.3605E-10,5.9582E-12,6.1471E-12,,powerlaw+bbodyrad,cstat
+00030034152wt,59821.823866,0.006342592591,,HS,3.8648E-11,3.1109E-12,3.4696E-12,,powerlaw+bbodyrad,cstat
+00030034153wt,59825.262992,0.01142361111,,Unclear,1.5816E-11,1.4343E-12,1.5075E-12,,powerlaw+bbodyrad,cstat
+00030034154wt,59829.849074,0.01287037037,,HS,4.0739E-11,2.0471E-12,2.1876E-12,,powerlaw+bbodyrad,cstat
+00030034155wt,59833.876389,0.2693518519,,HS,1.7412E-10,8.7463E-12,9.2160E-12,,powerlaw+bbodyrad,cstat
+
+
+
+## RADIO_DATA
+# blockID, band, t_radio, dt_radio, Rphase, Rstate, Fr, Fr_unc, Fr_uplim, local_rms, alpha, alpha_unc
+1564594534,L,58695.74395,0.010367,,HS,,,7.6017E-02,,,
+1564947058,L,58699.82428,0.010367,,HS,,,1.1711E-01,,,
+1565459161,L,58705.81791,0.010366,decay,HS,5.8912E-01,3.3767E-02,,,,
+1565987538,L,58711.91819,0.010366,decay,HS,3.6465E-01,2.0768E-02,,,,
+1566574272,L,58718.70935,0.010366,decay,HS,1.1316E-01,2.0370E-02,,,,
+1567272657,L,58726.79406,0.010367,rise,HS,1.6414E-01,1.8203E-02,,,,
+1661613139,L,59818.664069,0.010366,,HS,3.7000E-01,2.6000E-02,,,,
+1662216377,L,59825.647711,0.010366,,HS,,,5.0500E-02,,,
+1662741220,L,59831.721025,0.010367,,HS,,,5.1800E-02,,,

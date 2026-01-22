@@ -1,0 +1,28 @@
+## Data from Justine and Joe
+
+
+
+## SOURCE_METADATA
+# class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
+NS,11.605, -1.562, [],6.0, "(""uniform"",1,8.7)", 1.0-8.7, []
+
+## OBS_METADATA
+# xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
+68, [Crook-Mansour et al. (in prep.) & ], [Crook-Mansour et al. (in prep) &], "A dust-scattering halo has been reported, which may have a non-negligible contribution to the WT observation reported on here.",
+
+
+
+
+## XRAY_DATA
+# obsID, t_xray, dt_xray, Xphase, Xstate, Fx, Fx_unc_l, Fx_unc_u, Fx_uplim, model, fit_stat
+00015208001 ,59738.19882,0.1429996705,,HS,4.670E-09,3.026E-11,2.996E-11,,tbabs * pegpwrlw,cstat
+
+
+
+## RADIO_DATA
+# blockID, band, t_radio, dt_radio, Rphase, Rstate, Fr, Fr_unc, Fr_uplim, local_rms, alpha, alpha_unc
+1654729268,L,59738.97492,0.01036598486,,HS,4.206E+00,2.836E-02,,2.392E+01,,
+1655070377,L,59742.98707,0.01036598477,,HS,,,7.451E-02,2.484E+01,,
+1656880661,L,59763.92267,0.01036598486,,HS,3.192E-01,2.606E-02,,2.540E+01,,
+1657395077,L,59769.8755,0.01036598485,quiescence,QS,,,7.679E-02,2.560E+01,,
+1657909279,L,59775.81249,0.0104585383,quiescence,QS,,,7.090E-02,2.363E+01,,

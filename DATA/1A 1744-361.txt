@@ -1,0 +1,58 @@
+## Data from Andrew
+
+
+
+## SOURCE_METADATA
+# class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
+NS,354.12,-4.192, [],8.0, "(""uniform"", 1, 10)", 1.0-10.0, [https://ui.adsabs.harvard.edu/abs/2006ApJ...639L..31B/abstract]
+
+
+## OBS_METADATA
+# xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
+68, [Mason et al. 2024 & https://ui.adsabs.harvard.edu/abs/2024ApJ...966..232N/abstract], [Crook-Mansour et al. (in prep) &],,
+
+
+
+
+
+## XRAY_DATA
+# obsID, t_xray, dt_xray, Xphase, Xstate, Fx, Fx_unc_l, Fx_unc_u, Fx_uplim, model, fit_stat
+00000031222007,59731.7449,0.20072,rise,IMS,2.800E-09,1.176E-11,1.175E-11,,tbabs * (diskbb + bbody),chi
+00000031222008,59735.7478,0.00847,unclear,SS,3.873E-09,7.961E-11,7.970E-11,,tbabs * (diskbb + bbody),chi
+00000031222009,59749.1570,0.00383,decay,SS,3.783E-09,1.121E-10,1.123E-10,,tbabs * (diskbb + bbody),chi
+00000031222010,59759.7656,0.00198,decay,SS,2.791E-09,1.079E-10,1.082E-10,,tbabs * (diskbb + bbody),chi
+00000031222011,59765.9301,0.00778,decay,SS,2.957E-09,6.464E-11,6.472E-11,,tbabs * (diskbb + bbody),chi
+00000031222012,59773.6918,0.00788,decay,SS,3.294E-09,1.890E-11,1.887E-11,,tbabs * (diskbb + bbody),chi
+00000031222013,59777.8067,0.00462,decay,SS,2.925E-09,2.262E-11,2.256E-11,,tbabs * (diskbb + bbody),chi
+00000031222014,59785.3587,1.06441,decay,SS,2.097E-09,1.958E-11,1.951E-11,,tbabs * (diskbb + bbody),chi
+00000031222016,59798.0774,0.00199,decay,SS,1.742E-09,2.791E-11,2.793E-11,,tbabs * (diskbb + bbody),chi
+00000031222017,59801.6670,0.00826,decay,SS,1.398E-09,1.157E-11,1.154E-11,,tbabs * (diskbb + bbody),chi
+00000031222018,59802.8612,0.01087,decay,HS,1.274E-09,1.031E-11,1.028E-11,,tbabs * (pegpwrlw + bbody),chi
+00000031222019,59805.3811,0.00856,decay,HS,8.194E-10,8.121E-12,8.091E-12,,tbabs * (pegpwrlw + bbody),chi
+00000031222020,59806.4927,0.01027,decay,HS,8.275E-10,8.176E-12,8.145E-12,,tbabs * (pegpwrlw + bbody),chi
+00000031222021,59807.4928,0.01141,decay,HS,6.998E-10,6.716E-12,6.691E-12,,tbabs * (pegpwrlw + bbody),chi
+00000031222022,59808.4187,0.00962,decay,HS,5.699E-10,7.398E-12,7.404E-12,,tbabs * (pegpwrlw + bbody),chi
+00000031222023,59810.0027,0.00087,decay,HS,2.360E-10,2.797E-11,3.160E-11,,tbabs * pegpwrlw,cstat
+00000031222024,59810.7501,0.00395,decay,HS,1.528E-10,5.210E-12,5.220E-12,,tbabs * (pegpwrlw + bbody),chi
+00000031222025,59811.3702,0.60243,decay,HS,1.518E-10,4.783E-12,4.792E-12,,tbabs * (pegpwrlw + bbody),chi
+00000031222026,59812.3041,0.33325,decay,HS,1.054E-10,4.035E-12,4.043E-12,,tbabs * (pegpwrlw + bbody),chi
+00000031222027,59813.7557,0.34252,decay,HS,6.571E-11,2.290E-12,2.295E-12,,tbabs * (pegpwrlw + bbody),chi
+00000031222028,59815.4840,0.61645,decay,HS,3.375E-11,1.32E-12,1.32E-12,,tbabs * (pegpwrlw + bbody),chi
+
+
+## RADIO_DATA
+# blockID, band, t_radio, dt_radio, Rphase, Rstate, Fr, Fr_unc, Fr_uplim, local_rms, alpha, alpha_unc
+1654038686,L,59730.97968,0.01042,rise,IMS,1.240,0.019,,18.251,-0.2,-0.1
+1654290075,L,59733.93079,0.01042,unclear,SS,1.062,0.018,,19.546,-0.3,-0.1
+1655070377,L,59742.96301,0.01042,decay,SS,0.570,0.019,,19.312,-0.6,-0.1
+1655498179,L,59747.91150,0.01042,decay,SS,,,0.129,19.730,,
+1656540372,L,59759.97549,0.01042,decay,SS,0.087,0.018,,18.539,,
+1656880661,L,59763.94295,0.01042,decay,SS,0.086,0.017,,16.482,,
+1657395077,L,59769.89522,0.01042,decay,SS,,,0.106,18.217,,
+1657909279,L,59775.83170,0.01042,decay,SS,,,0.102,18.663,,
+1658516479,L,59782.84483,0.01042,decay,SS,,,0.121,17.985,,
+1659200476,L,59790.73284,0.01042,decay,SS,,,0.111,20.804,,
+1659823064,L,59797.93867,0.01042,decay,SS,,,0.081,20.234,,
+1660404079,L,59804.66341,0.01042,decay,HS,,,0.093,20.663,,
+1661015807,L,59811.75657,0.01042,decay,HS,,,0.051,18.485,,
+1661613139,L,59818.65713,0.01042,decay,HS,,,0.113,20.681,,

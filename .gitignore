@@ -1,0 +1,4 @@
+lrlx_paper_venv/
+__pycache__/
+DATA/ORIGINAL/
+DATA/convert_format.ipynb

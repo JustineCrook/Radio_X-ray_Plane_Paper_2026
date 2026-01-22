@@ -1,0 +1,70 @@
+## Data from Itu
+
+
+## SOURCE_METADATA
+# class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
+candidateBH,336.29,0.31, [],5.0, "(""uniform"", 4.5, 10)",4.5-10.0, [https://ui.adsabs.harvard.edu/abs/2023ApJ...944...68R/abstract]
+
+## OBS_METADATA
+# xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
+68, [Monageng et al. 2024 & https://ui.adsabs.harvard.edu/abs/2021MNRAS.501.5776M/abstract], [Monageng et al. 2024 & https://ui.adsabs.harvard.edu/abs/2021MNRAS.501.5776M/abstract], "A 10% systematic error has already been added in quadrature to the statistical uncertainty.",
+
+
+
+## XRAY_DATA
+# obsID, t_xray, dt_xray, Xphase, Xstate, Fx, Fx_unc_l, Fx_unc_u, Fx_uplim, model, fit_stat
+11093004,58501.88195,0.01191865929,decay,SS,6.40E-08,6.40E-09,6.40E-09,,tbabs*cflux(powerlaw+diskbb),chi
+11093007,58509.99366,0.01208462789,decay,HS,5.62E-08,5.62E-09,5.62E-09,,tbabs*cflux(powerlaw+diskbb),chi
+11093009,58515.89565,0.01099260462,decay,HS,4.00E-08,4.00E-09,4.00E-09,,tbabs*cflux(powerlaw+diskbb),chi
+11093013,58524.26759,0.01156046469,decay,HS,3.49E-08,3.50E-09,3.50E-09,,tbabs*cflux(powerlaw+diskbb),chi
+11093018,58530.57724,0.01167971315,decay,HS,2.64E-08,2.64E-09,2.64E-09,,tbabs*cflux(powerlaw+diskbb),chi
+11093025,58542.99444,0.01058768618,decay,HS,1.44E-08,1.44E-09,1.44E-09,,tbabs*cflux(powerlaw+diskbb),chi
+11093034,58560.91491,0.01128016185,decay,SS,9.52E-09,9.52E-10,9.52E-10,,tbabs*cflux(powerlaw+diskbb),chi
+11093037,58566.57035,0.01157114298,decay,SS,1.25E-08,1.30E-09,1.30E-09,,tbabs*cflux(powerlaw+diskbb),chi
+11093041,58574.14179,0.01168726903,decay,SS,8.44E-09,8.44E-10,8.44E-10,,tbabs*cflux(powerlaw+diskbb),chi
+11093045,58582.10447,0.01133809266,decay,SS,7.05E-09,7.10E-10,7.10E-10,,tbabs*cflux(powerlaw+diskbb),chi
+11093048,58588.54453,0.01174318291,decay,SS,6.33E-09,6.33E-10,6.33E-10,,tbabs*cflux(powerlaw+diskbb),chi
+11093061,58614.57424,0.0009229657953,decay,SS,2.28E-09,2.30E-10,2.30E-10,,tbabs*cflux(powerlaw+diskbb),chi
+11093065,58622.48087,0.008562529481,decay,SS,2.70E-09,1.30E-09,1.30E-09,,tbabs*cflux(powerlaw+diskbb),chi
+11093068,58628.45625,0.01053011268,decay,SS,1.35E-09,1.40E-10,1.40E-10,,tbabs*cflux(powerlaw+diskbb),chi
+11093071,58634.1566,0.00994744213,decay,IMS,4.36E-10,4.40E-11,4.40E-11,,tbabs*cflux(powerlaw+diskbb),chi
+11093075,58642.06778,0.01110880295,decay,HS,2.36E-10,2.40E-11,2.40E-11,,tbabs*cflux(powerlaw+diskbb),chi
+11093079,58650.90514,0.01134033834,decay,HS,4.30E-11,4.30E-12,4.30E-12,,tbabs*cflux(powerlaw+diskbb),chi
+11093083,58658.53083,0.01134015311,decay,HS,7.40E-11,7.40E-12,7.40E-12,,tbabs*cflux(powerlaw+diskbb),chi
+11093086,58664.64597,0.01168713191,decay,HS,3.47E-10,3.50E-12,3.50E-12,,tbabs*cflux(powerlaw+diskbb),chi
+11093093,58678.52599,0.009893537601,decay,SS,3.67E-09,3.70E-10,3.70E-10,,tbabs*cflux(powerlaw+diskbb),chi
+11093097,58686.02718,0.01032168456,decay,SS,4.61E-09,4.61E-10,4.61E-10,,tbabs*cflux(powerlaw+diskbb),chi
+11093100,58692.46595,0.01197471134,decay,SS,4.95E-09,4.95E-10,4.95E-10,,tbabs*cflux(powerlaw+diskbb),chi
+11093104,58699.51372,0.01226406089,decay,SS,4.46E-09,4.50E-10,4.50E-10,,tbabs*cflux(powerlaw+diskbb),chi
+11093108,58706.35625,0.01058497622,decay,SS,3.82E-09,3.82E-10,3.82E-10,,tbabs*cflux(powerlaw+diskbb),chi
+
+
+
+## RADIO_DATA
+# blockID, band, t_radio, dt_radio, Rphase, Rstate, Fr, Fr_unc, Fr_uplim, local_rms, alpha, alpha_unc
+1547288173,L,58495.44234,0.010277778,decay,SS,4.7,0.17,,,,
+1547884999,L,58502.35038,0.010266204,decay,SS,4.67,0.2,,,,
+1548489789,L,58509.3506,0.010185185,decay,HS,6.88,0.27,,,,
+1548991875,L,58515.17573,0.010277778,decay,HS,3.36,0.15,,,,
+1549688122,L,58523.23337,0.010277778,decay,HS,4.69,0.26,,,,
+1550284172,L,58530.12843,0.010185185,decay,HS,4.86,0.19,,,,
+1551404170,L,58543.09068,0.010266204,decay,HS,3.99,0.2,,,,
+1552872672,L,58560.08841,0.010266204,decay,SS,15.61,0.5,,,-0.89,0.07
+1553477469,L,58567.08829,0.010277778,decay,SS,37.36,0.62,,,-0.242,0.043
+1554080984,L,58574.07443,0.010266204,decay,SS,22.29,0.53,,,-0.306,0.026
+1554771678,L,58582.06773,0.009733796,decay,SS,7.31,0.27,,,-0.369,0.043
+1555290074,L,58588.06741,0.010266204,decay,SS,3.48,0.23,,,,
+1557610250,L,58614.92263,0.010185185,decay,SS,2.37,0.13,,,,
+1558213252,L,58621.90184,0.010277778,quiescence,SS,2.41,0.21,,,,
+1558743128,L,58628.03314,0.010277778,quiescence,SS,2.44,0.18,,,,
+1559334653,L,58634.88214,0.010277778,quiescence,IMS,2.66,0.18,,,,
+1560024256,L,58642.86354,0.010277778,quiescence,HS,1.9,0.12,,,,
+1560717071,L,58650.86677,0.010277778,quiescence,HS,1.515,0.071,,,,
+1561401054,L,58658.78311,0.010266204,quiescence,HS,1.14,0.14,,,,
+1561913155,L,58664.71006,0.010277778,quiescence,HS,1.72,0.26,,,,
+1562529792,L,58671.85208,0.010277778,quiescence,SS,0.0842,0.0001,,,,
+1563139019,L,58678.89758,0.010277778,quiescence,SS,0.616,0.101,,,,
+1563825653,L,58686.84477,0.010277778,quiescence,SS,0.703,0.095,,,,
+1564248236,L,58691.7358,0.010277778,quiescence,SS,0.76,0.106,,,,
+1564936258,L,58699.69907,0.010277778,quiescence,SS,1.15,0.18,,,,
+1565459161,L,58705.75117,0.010277778,quiescence,SS,0.872,0.158,,,,

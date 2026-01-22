@@ -1,0 +1,2 @@
+t,t_diff,Fx,Fx_unc_l,Fx_unc_u,Fx_uplim_bool,name,blockID,band,dt_radio,Rphase,Fr,Fr_unc,local_rms,alpha,alpha_unc,Fr_uplim_bool,state,class,D,D_prob,Lr,Lr_unc,Lx,Lx_unc_l,Lx_unc_u
+59119.0,0.0,2.3e-09,3.0479501308256344e-10,3.0479501308256344e-10,False,Vela X-1,1600995961 & 1601168939 & 1602387062,L,0.0625,,0.096,0.04028697059844535,0.04,,,False,Unclear,NS HMXRB,1.99,"(""gauss"",1.99, 0.13)",5.8235668203092554e+26,2.4438944298737587e+26,1.090023086483666e+36,1.4444939169786314e+35,1.4444939169786314e+35

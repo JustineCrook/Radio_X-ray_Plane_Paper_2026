@@ -1,0 +1,63 @@
+## Data from Andrew
+
+
+## SOURCE_METADATA
+# class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
+NS,5.19725,-3.43108, [],4.9, "(""gauss"", 4.9, 0.3)", 4.9 \pm 0.3, [https://ui.adsabs.harvard.edu/abs/2000ApJ...536..891N/abstract]
+
+## OBS_METADATA
+# xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
+90, [Hughes et al. 2024 & https://ui.adsabs.harvard.edu/abs/2024MNRAS.527.9359H/abstract], [Hughes et al. 2024 & https://ui.adsabs.harvard.edu/abs/2024MNRAS.527.9359H/abstract],,
+
+
+
+
+
+
+## XRAY_DATA
+# obsID, t_xray, dt_xray, Xphase, Xstate, Fx, Fx_unc_l, Fx_unc_u, Fx_uplim, model, fit_stat
+00032459005,59364.2184,0.007002,peak,HS,1.397E-09,8.000E-11,8.000E-11,,tbabs*(pegpwrlw + cflux * bbody),chi
+00032459006,59378.8865,0.013773,decay,HS,2.800E-10,1.600E-11,3.000E-11,,tbabs*(pegpwrlw + cflux * bbody),chi
+00032459007,59385.7875,0.011690,rise,HS,2.600E-10,1.800E-11,2.000E-11,,tbabs*(pegpwrlw + cflux * bbody),chi
+00032459008,59392.6670,0.014410,rise,HS,3.590E-10,2.000E-11,2.000E-11,,tbabs*(pegpwrlw + cflux * bbody),chi
+00032459009,59399.4052,0.009549,rise,HS,4.650E-10,4.000E-11,4.000E-11,,tbabs*(pegpwrlw + cflux * bbody),chi
+00032459010,59406.7712,0.009780,rise,HS,3.410E-10,4.000E-11,4.000E-11,,tbabs*(pegpwrlw + cflux * bbody),chi
+00032459011,59413.5424,0.014583,rise,HS,5.620E-10,5.000E-11,4.000E-11,,tbabs*(pegpwrlw + cflux * bbody),chi
+00032459012,59433.4163,0.011632,rise,HS,8.000E-10,7.000E-11,6.000E-11,,tbabs*(pegpwrlw + cflux * bbody),chi
+00032459013,59437.2385,0.010590,decay,HS,7.720E-10,6.000E-11,5.000E-11,,tbabs*(pegpwrlw + cflux * bbody),chi
+00032459014,59451.2420,0.010648,decay,HS,2.310E-10,1.800E-11,1.400E-11,,tbabs*(pegpwrlw + cflux * bbody),chi
+00032459015,59458.2813,0.012905,decay,HS,2.670E-10,1.800E-11,1.800E-11,,tbabs*(pegpwrlw + cflux * bbody),chi
+00032459017,59462.5809,0.011863,decay,HS,3.000E-10,5.000E-11,5.000E-11,,tbabs*(pegpwrlw + cflux * bbody),chi
+00032459018,59468.3698,0.010938,decay,HS,1.510E-10,1.400E-11,1.400E-11,,tbabs*(pegpwrlw + cflux * bbody),chi
+00032459019,59475.6038,0.011343,decay,HS,1.440E-10,1.600E-11,1.600E-11,,tbabs*(pegpwrlw + cflux * bbody),chi
+00032459020,59482.3688,0.011921,decay,HS,1.750E-10,1.700E-11,1.600E-11,,tbabs*(pegpwrlw + cflux * bbody),chi
+00032459021,59489.2729,0.009502,decay,HS,2.150E-10,1.900E-11,1.900E-11,,tbabs*(pegpwrlw + cflux * bbody),chi
+00032459022,59496.2413,0.010995,decay,HS,6.200E-11,7.000E-12,4.000E-12,,tbabs*(pegpwrlw + cflux * bbody),chi
+00032459023,59504.3378,0.011169,decay,HS,1.800E-12,1.000E-12,1.100E-12,,tbabs*pegpwrlw,cstat
+00032459024,59511.3753,0.011285,decay,HS,4.000E-13,3.000E-13,4.000E-13,,tbabs*pegpwrlw,cstat
+
+
+
+## RADIO_DATA
+# blockID, band, t_radio, dt_radio, Rphase, Rstate, Fr, Fr_unc, Fr_uplim, local_rms, alpha, alpha_unc
+1621641679,L,59356.0664,0.0104167,peak,HS,0.139,0.018,,18,,
+1622155550,L,59361.9971,0.0104167,peak,HS,0.104,0.019,,18,,
+1622926875,L,59370.9384,0.0104167,decay,HS,0.114,0.018,,17,,
+1623537075,L,59378.0052,0.0104167,rise,HS,0.050,0.016,,15,,
+1624136593,L,59384.9575,0.0104167,rise,HS,,,0.091,18,,
+1624752089,L,59392.0794,0.0104167,rise,HS,,,0.108,20,,
+1625431872,L,59399.9485,0.0104167,rise,HS,,,0.093,16,,
+1626045690,L,59407.0643,0.0104167,rise,HS,,,0.141,26,,
+1627313073,L,59421.7331,0.0104167,rise,HS,0.082,0.020,,20,,
+1627759641,L,59426.8764,0.0104167,rise,HS,0.104,0.018,,17,,
+1628363787,L,59433.8542,0.0104167,decay,HS,,,0.105,19,,
+1629060080,L,59441.9102,0.0104167,decay,HS,,,0.145,24,,
+1629643583,L,59448.6638,0.0104167,decay,HS,,,0.084,22,,
+1630162277,L,59454.6674,0.0104167,decay,HS,,,0.117,23,,
+1630859622,L,59462.7406,0.0104167,decay,HS,,,0.058,17,,
+1631541977,L,59470.6371,0.0104167,decay,HS,,,0.074,22,,
+1632148282,L,59477.6687,0.0104167,decay,HS,,,0.045,17,,
+1632745869,L,59484.5850,0.0104167,decay,HS,,,0.130,26,,
+1633356072,L,59491.6485,0.0104167,decay,HS,,,0.052,17,,
+1633788074,L,59496.6492,0.0104167,decay,HS,,,0.058,17,,
+1634986873,L,59510.5502,0.0104167,decay,HS,,,0.040,16,,

@@ -1,0 +1,35 @@
+## Data from Jakob
+
+## SOURCE_METADATA
+# class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
+NS,332.2,23.9, [],1.87,"(""gauss"", 1.87, 0.75)", 1.87^{+0.75}_{-0.42}, [https://ui.adsabs.harvard.edu/abs/2022MNRAS.516.2641V/abstract]
+
+## OBS_METADATA
+# xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
+68, [van den Eijnden et al. 2022 & https://ui.adsabs.harvard.edu/abs/2022MNRAS.516.2641V/abstract], [van den Eijnden et al. 2022 & https://ui.adsabs.harvard.edu/abs/2022MNRAS.516.2641V/abstract] , , 
+
+
+
+## XRAY_DATA
+# obsID, t_xray, dt_xray, Xphase, Xstate, Fx, Fx_unc_l, Fx_unc_u, Fx_uplim, model, fit_stat
+00088937006,59118.52,0.03433038194,quiescence,QS,3.500E-13,1.000E-13,1.000E-13,,tbabs*(nsatmos + powerlaw),cstat
+00035324068,59211.46,0.009112118056,quiescence,QS,2.900E-12,6.000E-13,6.000E-13,,tbabs*(nsatmos + power law) with template parameters (see VdEijnden+2022),cstat
+00035324069,59214.25,0.005997719907,quiescence,QS,4.500E-12,1.800E-12,1.800E-12,,tbabs*(nsatmos + power law) with template parameters (see VdEijnden+2022),cstat
+00035324070,59218.96,0.01126391204,quiescence,QS,1.10E-11,1.000E-12,1.000E-12,,tbabs*(nsatmos + powerlaw),cstat
+00035324071,59221.15,0.007849918981,quiescence,QS,7.400E-12,1.500E-12,1.500E-12,,tbabs*(nsatmos + powerlaw),cstat
+00035324072,59225.93,0.009721527778,quiescence,QS,1.200E-12,1.000E-13,1.000E-13,,tbabs*(nsatmos + power law) with template parameters (see VdEijnden+2022),cstat
+00035324074,59227.06,0.01119540509,quiescence,QS,1.200E-12,1.000E-13,1.000E-13,,tbabs*(nsatmos + power law) with template parameters (see VdEijnden+2022),cstat
+00035324075,59228.13,0.01009591435,quiescence,QS,1.300E-12,2.000E-13,2.000E-13,,tbabs*(nsatmos + power law) with template parameters (see VdEijnden+2022),cstat
+00035324076,59229.98,0.01021362269,quiescence,QS,2.000E-12,5.000E-13,5.000E-13,,tbabs*(nsatmos + power law) with template parameters (see VdEijnden+2022),cstat
+00035324081,59233.76,0.01009895833,quiescence,QS,8.900E-13,2.000E-14,2.000E-14,,tbabs*(nsatmos + power law) with template parameters (see VdEijnden+2022),cstat
+00035324082,59234.96,0.0108428125,quiescence,QS,1.500E-12,3.000E-13,3.000E-13,,tbabs*(nsatmos + power law) with template parameters (see VdEijnden+2022),cstat
+00035324084,59237.61,0.008554537037,quiescence,QS,1.400E-12,3.000E-13,3.000E-13,,tbabs*(nsatmos + power law) with template parameters (see VdEijnden+2022),cstat
+
+
+
+## RADIO_DATA
+# blockID, band, t_radio, dt_radio, Rphase, Rstate, Fr, Fr_unc, Fr_uplim, local_rms, alpha, alpha_unc
+1601122564,L,59118.62333,0.1667,quiescence,QS,,,0.0129,4.3,,
+1610014143,L,59221.4352,0.0104,quiescence,QS,,,0.069,23,,
+1610180483,L,59223.3652,0.0104,quiescence,QS,,,0.054,18,,
+1610782322,L,59230.3252,0.0104,quiescence,QS,,,0.048,16,,

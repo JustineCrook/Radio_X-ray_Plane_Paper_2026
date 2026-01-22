@@ -1,0 +1,33 @@
+## Data from David and Zuobin
+
+## SOURCE_METADATA
+# class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
+candidateBH,0.67,1.18,[], 8, "(""uniform"", 6.0, 8.5)",\text{uncertain; possibly} \sim 8.0, [https://ui.adsabs.harvard.edu/abs/1996A%26A...314L..21G/abstract ; https://ui.adsabs.harvard.edu/abs/2019MNRAS.482.1392M/abstract]
+
+## OBS_METADATA
+# xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
+68, [Crook-Mansour et al. (in prep.) & ], [Crook-Mansour et al. (in prep.) & ] ,  ,  
+
+
+## XRAY_DATA
+# obsID, t_xray, dt_xray, Xphase, Xstate, Fx, Fx_unc_l, Fx_unc_u, Fx_uplim, model, fit_stat
+00033812089 ,60123.10298,,peak/trough,SS,4.2658E-09,2.8472E-10,3.0509E-10,,,
+00033812090 ,60133.61575,,decay,SS,2.8379E-09,3.8938E-11,3.9479E-11,,,
+00033812091 ,60140.55622,,decay,SS,2.1038E-09,5.2616E-11,5.8940E-11,,,
+00033812092 ,60147.36391,,decay,SS,1.0691E-09,3.1526E-11,4.2677E-11,,,
+00033812093 ,60161.17461,,decay,HS,4.5709E-11,4.9708E-12,5.5773E-12,,,
+00033812094 ,60168.03342,,decay,HS,1.1220E-11,1.6703E-12,1.9624E-12,,,
+
+
+## RADIO_DATA
+# blockID, band, t_radio, dt_radio, Rphase, Rstate, Fr, Fr_unc, Fr_uplim, local_rms, alpha, alpha_unc
+1688086271,L,60125.06613,0.0102708333,,SS,1.06,0.02,,0.046,,
+1688764579,L,60132.91834,0.0102708333,,SS,0.182,0.024,,0.034,,
+1689525980,L,60141.72942,0.0102708333,,SS,,,0.12,0.04,,
+1689958275,L,60146.73292,0.0102708333,,SS,,,0.12,0.04,,
+1690568489,L,60153.79581,0.0102708333,,IMS,,,0.1,0.033,,
+1691176395,L,60160.8327,0.0102708333,,HS,0.363,0.02,,0.04,,
+1691942477,L,60169.7067,0.0102708333,,HS,,,0.11,0.036,,
+1692369676,L,60174.65093,0.0102708333,,HS,,,0.12,0.04,,
+1693837274,L,60191.63717,0.0102708333,,QS,,,0.11,0.037,,
+1694179874,L,60195.6022,0.0102708333,,QS,,,0.12,0.04,,

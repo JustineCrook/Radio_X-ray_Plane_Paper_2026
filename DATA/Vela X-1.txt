@@ -1,0 +1,23 @@
+## Data from Jakob
+
+
+## SOURCE_METADATA
+# class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
+NS HMXRB,263.3,2.9,[], 1.99, "(""gauss"",1.99, 0.13)", 1.99^{+0.13}_{-0.11}, [https://ui.adsabs.harvard.edu/abs/2021A%26A...652A..95K/abstract]
+
+## OBS_METADATA
+# xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
+68, [Crook-Mansour et al. (in prep.) & ], [van den Eijnden et al. 2022 & https://ui.adsabs.harvard.edu/abs/2022MNRAS.510..515V/abstract ; Crook-Mansour et al. (in prep.) &] , , "The core is only detectable when stacking the three MeerKAT observations of the source." 
+
+
+
+
+## XRAY_DATA
+# obsID, t_xray, dt_xray, Xphase, Xstate, Fx, Fx_unc_l, Fx_unc_u, Fx_uplim, model, fit_stat
+00033047059 & 00033047060 & 00033047061 & 00033047062 & 00033047063 & 00033047064 & 00033047065 & 00033047066 & 00033047067,59119.43,0.0364,,,2.300E-09,2.000E-10,2.000E-10,,tbabs*cflux*(bbody+comptt),cstat
+
+
+
+## RADIO_DATA
+# blockID, band, t_radio, dt_radio, Rphase, Rstate, Fr, Fr_unc, Fr_uplim, local_rms, alpha, alpha_unc
+1600995961 & 1601168939 & 1602387062,L,59119.0000,0.0625,,,0.096,0.04,,0.04,,

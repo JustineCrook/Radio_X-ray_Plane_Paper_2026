@@ -1,0 +1,35 @@
+## Data from David
+
+## SOURCE_METADATA
+# class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
+candidateBH,357.25507667,-1.83296522, [],8.5, "(""gauss"", 8.5, 0.8)", 8.5 \pm 0.8, [https://ui.adsabs.harvard.edu/abs/2012ApJ...745L...7S/abstractt]
+
+## OBS_METADATA
+# xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
+68, [Williams et al. 2020 & https://ui.adsabs.harvard.edu/abs/2020MNRAS.491L..29W/abstract], [Williams et al. 2020 & https://ui.adsabs.harvard.edu/abs/2020MNRAS.491L..29W/abstract],,
+
+
+## XRAY_DATA
+# obsID, t_xray, dt_xray, Xphase, Xstate, Fx, Fx_unc_l, Fx_unc_u, Fx_uplim, model, fit_stat
+00010247026,58376.4442,0.0180511234,peak/trough,HS,1.520E-09,8.000E-11,8.000E-11,,tbabs*cflux*(powerlaw+gauss),
+00010247027,58382.55454,0.01816684932,decay,HS,1.310E-09,7.000E-11,7.000E-11,,tbabs*cflux*(powerlaw+gauss),
+00010247029,58388.26959,0.01724271174,decay,HS,7.900E-10,4.000E-11,4.000E-11,,tbabs*cflux*(powerlaw+gauss),
+00010247032,58397.63114,0.004969646878,decay,HS,1.870E-10,9.000E-12,9.000E-12,,tbabs*cflux*(powerlaw+gauss),
+00010247034,58403.46869,0.01625895883,decay,HS,7.100E-11,4.000E-12,4.000E-12,,tbabs*cflux*(powerlaw+gauss),
+00010247036,58409.58788,0.01538901512,quiescence,HS,2.100E-11,1.000E-12,1.000E-12,,tbabs*cflux*(powerlaw+gauss),
+00010247039,58418.01867,0.01628003704,quiescence,HS,9.000E-12,5.000E-12,6.000E-12,,tbabs*cflux*(powerlaw+gauss),
+
+
+## RADIO_DATA
+# blockID, band, t_radio, dt_radio, Rphase, Rstate, Fr, Fr_unc, Fr_uplim, local_rms, alpha, alpha_unc
+1536166854,L,58366.734,0.03194444,rise,HS,0.69,0.07,,45,-0.32,0.03
+1536426351,L,58369.728,0.01041667,rise,HS,1.4,0.1,,95,-1,0.4
+1536942657,L,58375.705,0.01041667,peak/trough,HS,2.42,0.06,,65,-0.4,0.2
+1537545949,L,58382.685,0.01041667,decay,HS,1.69,0.05,,34,0.03,0.07
+1538154030,L,58389.716,0.01041667,decay,HS,0.88,0.05,,36,-0.1,0.2
+1538754149,L,58396.662,0.01041667,decay,HS,0.32,0.08,,37,-1,0.3
+1539354654,L,58403.633,0.01041667,decay,HS,0.2,0.1,,36,-0.8,0.8
+1539955889,L,58410.591,0.01041667,quiescence,HS,,,0.11,39,,
+1540640133,L,58418.511,0.01041667,quiescence,HS,,,0.11,35,,
+1541242861,L,58425.487,0.01041667,quiescence,QS,,,0.1,33,,
+1541845876,L,58432.468,0.01041667,quiescence,QS,,,0.11,34,,
