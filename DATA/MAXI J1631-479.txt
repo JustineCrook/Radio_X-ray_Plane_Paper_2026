@@ -3,7 +3,7 @@
 
 ## SOURCE_METADATA
 # class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
-candidateBH,336.29,0.31, [],5.0, "(""uniform"", 4.5, 10)",4.5-10.0, [https://ui.adsabs.harvard.edu/abs/2023ApJ...944...68R/abstract]
+candidateBH,336.29,0.31, [],6.5, "(""uniform"", 4.5, 8.5)",4.5-8.5, [https://ui.adsabs.harvard.edu/abs/2023ApJ...944...68R/abstract]
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text

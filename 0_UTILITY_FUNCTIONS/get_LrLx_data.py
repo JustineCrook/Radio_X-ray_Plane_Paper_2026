@@ -17,6 +17,12 @@ from pathlib import Path
 from get_data import convert_Fr, convert_Fx, read_data
 from interpolation import interp_data_scipy_MC, manual_linear_interpolation
 
+
+Lr_med = 4.54e+28 #erg/s
+Lx_med = 5.47e+35 #erg/s
+
+
+
 ##############################################################################################################
 ### PAIRING ALGORITHMS
 
@@ -276,8 +282,10 @@ def make_interpolated_Lr_Lx_df(radio_df, xray_df, source_metadata, d_kpc=None, n
 ##############################################################################################################
 ## RUNNER TO GET THE LRLX DATA FOR ALL SOURCES
 
-# Use names if we do not want to include allt he sources
 def get_all_LrLx_data(names = None, interp=False, rerun = True, save=False):
+    """
+    Use names = ["...", "..."] if we do not want to include all the sources.
+    """
 
     if names is None:
         folder_path = "../DATA"
@@ -328,7 +336,7 @@ def get_all_LrLx_data(names = None, interp=False, rerun = True, save=False):
 
             # Define the desired column order
             columns_to_write = [
-                'name', 'class', 't', 'state',
+                'name', 'class', 'D', 't', 'state',
                 'Lr', 'Lr_unc', 'Lr_uplim_bool',
                 'Lx', 'Lx_unc_l', 'Lx_unc_u', 'Lx_uplim_bool'
             ]
@@ -344,3 +352,89 @@ def get_all_LrLx_data(names = None, interp=False, rerun = True, save=False):
 
 
     return all_data_df
+
+
+
+
+
+
+def get_all_LrLx_data_filtered(names = None, interp=False, rerun = False, save=False, incl_Fx_uplims = False, incl_Fr_uplims=True, type_source=None):
+    """
+    Function to get LrLx data for the clustering and linear regression -- only HS and QS data, with options to include/exclude upper limits, BHs/NSs only. 
+    """
+
+    ## Get all the LrLx data
+    all_data = get_all_LrLx_data(names, interp, rerun, save)
+
+    ## Filter to only use the HS and QS data
+    filtered_df = all_data[((all_data["state"] == "HS") | (all_data["state"] == "QS"))    ]
+
+    ## Filter to exclude upper limits if desired
+    xray_detections = ~filtered_df["Fx_uplim_bool"].to_numpy() # boolean array: True if detection
+    if incl_Fx_uplims==False: # Filter to exclude points with X-ray non-detections
+        filtered_df = filtered_df[xray_detections]
+    radio_detections = ~filtered_df["Fr_uplim_bool"].to_numpy() # boolean array: True if detection
+    if incl_Fr_uplims==False: # Filter to exclude points with radio non-detections
+        filtered_df = filtered_df[radio_detections]
+        
+
+    ## Filter to only include specified type of source
+    if type_source=="BH": filtered_df = filtered_df[filtered_df["class"].isin(["BH", "candidateBH"])]
+    elif type_source =="NS": filtered_df = filtered_df[filtered_df["class"].isin(["NS", "candidateNS"])]
+
+    unique_names = filtered_df["name"].unique()
+    print("Sources included after filtering: ", unique_names)
+
+
+    return filtered_df
+
+
+
+
+
+def get_data_arrays(names, interp=True, rerun=False, save=False, incl_Fr_uplims=True, incl_Fx_uplims=False, type_source=None, gx_339_filtered=False):
+    """
+    Get the data arrays for Lr, Lx, and their uncertainties.
+    """
+
+    # The median luminosities for normalisation
+    lr0, lx0 = Lr_med, Lx_med
+    print("lr0: ", lr0)
+    print("lx0: ", lx0)
+    print()
+
+    
+    # Important: The Lx upper limits have been excluded, as linmix does not have the functionality to fit these
+    # This only includes HS/QS data points
+    filtered_df = get_all_LrLx_data_filtered(names=names, interp=interp, rerun = rerun, save=save, incl_Fx_uplims = incl_Fx_uplims, incl_Fr_uplims=incl_Fr_uplims, type_source=type_source)
+    
+    # Get the required data arrays
+    # Get the luminosity (results using the best distance estimates)
+    lr = filtered_df["Lr"].to_numpy()
+    dlr = filtered_df["Lr_unc"].to_numpy()
+    delta_radio = ~ filtered_df["Fr_uplim_bool"].to_numpy()  # True if detection, False if upper limit
+    lx = filtered_df["Lx"].to_numpy()
+    dlx_l = filtered_df["Lx_unc_l"].to_numpy()
+    dlx_u = filtered_df["Lx_unc_u"].to_numpy()
+    delta_xrays = ~ filtered_df["Fx_uplim_bool"].to_numpy()  # True if detection, False if upper limit
+    t = filtered_df["t"].to_numpy()
+
+    # Name of the source for each data point
+    source_names = filtered_df["name"].to_numpy()
+    # Get the unique names (which are treated as IDs), and the corresponding best distances and distance distributions
+    unique_sources = filtered_df.drop_duplicates(subset="name")
+    unique_names = unique_sources["name"].to_numpy()
+    print(f"Number of source: {len(unique_names)}")
+    unique_D = unique_sources["D"].to_numpy()
+    unique_D_prob = unique_sources["D_prob"].to_numpy()
+
+    if gx_339_filtered:
+        t0 = 58964
+        t1 = 59083
+        mask_excl = (source_names=="GX 339-4") & ( (lx <= 2.7e34) | ( (t>=t0) & (t<=t1) ) )
+        lr0, lx0, lr, dlr, delta_radio, lx, dlx_l, dlx_u, delta_xrays, source_names, unique_names, unique_D, unique_D_prob, t = lr0, lx0, lr[~mask_excl], dlr[~mask_excl], delta_radio[~mask_excl], lx[~mask_excl], dlx_l[~mask_excl], dlx_u[~mask_excl], delta_xrays[~mask_excl], source_names[~mask_excl], unique_names, unique_D, unique_D_prob, t[~mask_excl]
+    
+
+    return lr0, lx0, lr, dlr, delta_radio, lx, dlx_l, dlx_u, delta_xrays, source_names, unique_names, unique_D, unique_D_prob, t
+
+

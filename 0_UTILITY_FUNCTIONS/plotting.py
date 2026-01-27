@@ -681,8 +681,8 @@ def plot_Lr_Lx(paired_data, colourby="", states=["HS", "IMS", "SS", "QS", "Uncle
         plt.scatter(x, y, color="blue", marker=".", s=15)
 
 
-    plt.xlabel('1-10 keV X-ray luminosity [erg/s]')
-    plt.ylabel('1.28 GHz radio luminosity [erg/s]')
+    plt.xlabel(r"1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]")
+    plt.ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
     ax.set_yscale("log", base=10)
     ax.set_xscale("log", base=10)
     ax.xaxis.set_major_locator(plt.LogLocator(base=10.0, numticks=10))
@@ -840,8 +840,8 @@ def plot_Lr_Lx_plotly(paired_data, colourby="", states=["HS", "IMS", "SS", "QS",
     
 
     fig.update_layout(
-        xaxis=dict(title='1-10 keV X-ray luminosity [erg/s]', type='log',),
-        yaxis=dict(title='1.28 GHz radio luminosity [erg/s]', type='log'),
+        xaxis=dict(title=r"1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]", type='log',),
+        yaxis=dict(title=r'1.28 GHz Radio Luminosity [erg s$^{-1}$]', type='log'),
         template='plotly_white',
         width=1200,
         height=700
