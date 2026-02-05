@@ -183,7 +183,7 @@ def transform1_back(pca_data_scaled, original_means, original_stds, pca_model, p
 
 def transform1_alt(data, standardise):
     """
-    The following should be equivalent to the function abve, with the option of whether to standardise. 
+    The following should be equivalent to the function above, with the option of whether to standardise. 
     
     Steps: 
     - (Standardise)
@@ -321,17 +321,17 @@ def affinity_propagation(data, transformed_data, preference, damping, logged = F
             ax.set_xlabel("log Lx")
             ax.set_ylabel("log Lr")
         else:
-            #ax.set_xlabel("1-10 keV X-ray Luminosity [erg/s]")
-            #ax.set_ylabel("1.28 GHz Radio Luminosity [erg/s]")
-            ax.set_xlabel(r"$L_X$ [erg s$^{-1}$]")
-            ax.set_ylabel(r"$L_R$ [erg s$^{-1}$]")
+            ax.set_xlabel(r"1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]")
+            ax.set_ylabel(r"1.28 GHz Radio Luminosity [erg s$^{-1}$]")
+            #ax.set_xlabel(r"$L_X$ [erg s$^{-1}$]")
+            #ax.set_ylabel(r"$L_R$ [erg s$^{-1}$]")
             ax.set_xscale("log", base=10)
             ax.set_yscale("log", base=10)
 
 
         # Add inset below legends (top left quadrant)
         # bbox_to_anchor=(0.03, 0.48, 0.32, 0.32),
-        ax1 = inset_axes(ax, width="100%", height="100%", loc="lower right", bbox_to_anchor=(0.66, 0.04, 0.32, 0.32), bbox_transform=ax.transAxes, borderpad=0)
+        ax1 = inset_axes(ax, width="100%", height="100%", loc="lower right", bbox_to_anchor=(0.67, 0.07, 0.32, 0.32), bbox_transform=ax.transAxes, borderpad=0)
 
 
 
@@ -350,11 +350,14 @@ def affinity_propagation(data, transformed_data, preference, damping, logged = F
                     [cluster_center[0], x[0]], [cluster_center[1], x[1]], color=col
                 )
         ax1.tick_params(labelsize=6)
+        ax1.set_xlabel("$x$", fontsize=9, labelpad=2)
+        ax1.set_ylabel("$y$", fontsize=9, labelpad=2)
+
 
         # ----- Legends and Boxes -----
 
         # Legend: Types
-        source_classes = ["candidate BH" if sc == "candidateBH" else sc for sc in source_classes] # for the source_class array, replace "candidateBH" with "BH"
+        source_classes = ["BH candidate" if sc == "candidateBH" else sc for sc in source_classes] # for the source_class array, replace "candidateBH" with "BH"
         type_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=typ) for typ in source_classes]
         phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65)  # spacing hack
         type_legend_handles.append(phantom)

@@ -5,6 +5,16 @@ import pandas as pd
 import numpy as np
 import glob
 from pathlib import Path
+from astropy.time import Time
+
+
+##############################################################################################################
+## HELPERS:
+
+def get_utc(mjd):
+    t = Time(mjd, format='mjd')
+    utc_datetime = t.to_datetime()
+    print(f"MJD {mjd}  -->  UTC {utc_datetime}")
 
 
 ##############################################################################################################
@@ -55,6 +65,15 @@ def convert_Fx(Fx_erg_s_cm2, Fx_erg_s_cm2_unc_l, Fx_erg_s_cm2_unc_u, d_kpc, d_kp
 
     return L, L_unc_l, L_unc_u
 
+
+
+## Convert flux density to a different frequency, assuming a particular spectral index
+def Fr(nu_GHz, S0_mJy, alpha, nu0_GHz = 1.28):
+
+    S_mJy = S0_mJy * (nu_GHz/nu0_GHz)**alpha
+
+    print(f"{S_mJy} mJy")
+    
 
 
 ##############################################################################################################

@@ -674,10 +674,12 @@ def linmix_results(N_runs =1, names = None, interp=False, type_source=None, incl
         type_sources = ["BH", "candidateBH", "NS"]
     else: 
         type_sources = ["NS"]
+    # Replace "candidateBH" with "BH candidate"
+    type_sources = ["BH candidate" if typ == "candidateBH" else typ for typ in type_sources]
     type_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".",  label=typ) for typ in type_sources]
     phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65) 
     type_legend_handles.append(phantom)
-    type_legend = ax.legend(handles=type_legend_handles, loc="upper left", title="Types", handlelength=0, fontsize=10)
+    type_legend = ax.legend(handles=type_legend_handles, loc="upper left", title="Types", bbox_transform=ax.transAxes, handlelength=0, fontsize=10)
     ax.add_artist(type_legend)
 
 
@@ -686,7 +688,7 @@ def linmix_results(N_runs =1, names = None, interp=False, type_source=None, incl
     state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states] 
     phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
     state_legend_handles.append(phantom)
-    state_legend = ax.legend(handles=state_legend_handles, bbox_to_anchor=(0.27, 1.0), title="States", handlelength=0, fontsize=10)
+    state_legend = ax.legend(handles=state_legend_handles, bbox_to_anchor=(0.27, 1.0), bbox_transform=ax.transAxes, title="States", handlelength=0, fontsize=10)
     ax.add_artist(state_legend)  
     
 
@@ -694,24 +696,26 @@ def linmix_results(N_runs =1, names = None, interp=False, type_source=None, incl
     # Ensure the 'Best fit' label is identified first
     sorted_pairs = sorted(zip(labels, handles), key=lambda x: 0 if r'$\beta$' in x[0] else 1)
     sorted_labels, sorted_handles = zip(*sorted_pairs)
-    ax.legend(sorted_handles, sorted_labels, fontsize=10, bbox_to_anchor=(0.28, 0.82), title="Best Fit")
+    ax.legend(sorted_handles, sorted_labels, fontsize=10, bbox_to_anchor=(0.28, 0.82), bbox_transform=ax.transAxes, title="Best Fit")
 
     plt.xlim([min_Lx,max_Lx])
     plt.ylim([min_Lr,max_Lr_2])
-    #ax.set_xlabel(r"1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]")
-    #ax.set_ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
-    ax.set_xlabel(r'$L_X$ [erg s$^{-1}$]')
-    ax.set_ylabel(r'$L_R$ [erg s$^{-1}$]')
+    ax.set_xlabel(r"1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]")
+    ax.set_ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
+    #ax.set_xlabel(r'$L_X$ [erg s$^{-1}$]')
+    #ax.set_ylabel(r'$L_R$ [erg s$^{-1}$]')
     ax.set_xscale('log', base=10)
     ax.set_yscale('log', base=10)   
     ax.xaxis.set_major_locator(plt.LogLocator(base=10.0, numticks=10))
     ax.xaxis.set_minor_locator(plt.LogLocator(base=10.0, subs="auto", numticks=10))
 
-    if save_name!=None: 
-        plt.savefig(f"../FIGURES/{save_name}.png", dpi=600)
-        plt.savefig(f"../FIGURES/{save_name}.pdf", dpi=600)
 
-    plt.show()
+    fig.canvas.draw() 
+    if save_name!=None: 
+        plt.savefig(f"../FIGURES/{save_name}.png", dpi=600, bbox_inches='tight', pad_inches=0.02)
+        plt.savefig(f"../FIGURES/{save_name}.pdf", dpi=600, bbox_inches='tight', pad_inches=0.02)
+
+    plt.show()    
 
 
 
@@ -771,49 +775,52 @@ def linmix_results_BH_vs_NS(N_runs=1, interp=True, save_name="BH_vs_NS"):
 
 
     ## PLOT LAYOUT
+
+    handles, labels = ax.get_legend_handles_labels()
+    # Ensure the 'Best fit' label is identified first
+    sorted_pairs = sorted(zip(labels, handles), key=lambda x: 0 if r'$\beta$' in x[0] else 1)
+    sorted_labels, sorted_handles = zip(*sorted_pairs)
+    bestfit_legend = ax.legend(sorted_handles, sorted_labels, fontsize=10, loc="upper left", bbox_transform=ax.transAxes, title="Best fits", labelspacing=0.5)   
+    ax.add_artist(bestfit_legend)
     
     # Create state legend (within plot) in black
     states = ["HS", "QS"]
     state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states] 
     phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
     state_legend_handles.append(phantom)
-    state_legend = ax.legend(handles=state_legend_handles, bbox_to_anchor=(0.128, 0.578),title="States", handlelength=0, fontsize=10)
+    state_legend = ax.legend(handles=state_legend_handles, bbox_to_anchor=(0.125, 0.62), bbox_transform=ax.transAxes, title="States", handlelength=0, fontsize=10) # bbox_to_anchor=(0.125, 0.578)
     ax.add_artist(state_legend)  
 
 
     # Create type legend (within plot) in black
-    types = ["BH & candidate BH", "NS"]
+    types = ["BH & BH candidate", "NS"]
     colours = ["#D40404", "#0303D6"]
     type_legend_handles = [plt.Line2D([0], [0], marker='o', color=colour, linestyle='None', markersize=6, label=type_source) for type_source, colour in zip(types,colours)] 
     phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
     type_legend_handles.append(phantom)
-    type_legend = ax.legend(handles=type_legend_handles, loc="upper left",bbox_to_anchor=(0.285, 1.0), title="Types", fontsize=10)
+    type_legend = ax.legend(handles=type_legend_handles, loc="upper left",bbox_to_anchor=(0.277, 1.0), bbox_transform=ax.transAxes, title="Types", fontsize=10)
     ax.add_artist(type_legend) 
 
 
-    handles, labels = ax.get_legend_handles_labels()
-    # Ensure the 'Best fit' label is identified first
-    sorted_pairs = sorted(zip(labels, handles), key=lambda x: 0 if r'$\beta$' in x[0] else 1)
-    sorted_labels, sorted_handles = zip(*sorted_pairs)
-    ax.legend(sorted_handles, sorted_labels, fontsize=10, loc="upper left", title="Best fits")   
 
     plt.xlim([min_Lx,max_Lx])
     plt.ylim([min_Lr,max_Lr_2])
-    #ax.set_xlabel(r"1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]")
-    #ax.set_ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
-    ax.set_xlabel(r'$L_X$ [erg s$^{-1}$]')
-    ax.set_ylabel(r'$L_R$ [erg s$^{-1}$]')
+    ax.set_xlabel(r"1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]")
+    ax.set_ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
+    #ax.set_xlabel(r'$L_X$ [erg s$^{-1}$]')
+    #ax.set_ylabel(r'$L_R$ [erg s$^{-1}$]')
     ax.set_xscale('log', base=10)
     ax.set_yscale('log', base=10)   
     ax.xaxis.set_major_locator(plt.LogLocator(base=10.0, numticks=10))
     ax.xaxis.set_minor_locator(plt.LogLocator(base=10.0, subs="auto", numticks=10))
 
+
+    fig.canvas.draw() 
     if save_name!=None: 
-        plt.savefig(f"../FIGURES/{save_name}.png", dpi=600)
-        plt.savefig(f"../FIGURES/{save_name}.pdf", dpi=600)
+        plt.savefig(f"../FIGURES/{save_name}.png", dpi=600, bbox_inches='tight', pad_inches=0.02)
+        plt.savefig(f"../FIGURES/{save_name}.pdf", dpi=600, bbox_inches='tight', pad_inches=0.02)
 
     plt.show()
-
 
 
 
@@ -897,10 +904,10 @@ def linmix_results_individual_sources(N_runs=1, names=None , interp=True, save_n
 
     plt.xlim([min_Lx,max_Lx])
     plt.ylim([min_Lr,max_Lr_2])
-    #ax.set_xlabel(r"1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]")
-    #ax.set_ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
-    ax.set_xlabel(r'$L_X$ [erg s$^{-1}$]')
-    ax.set_ylabel(r'$L_R$ [erg s$^{-1}$]')
+    ax.set_xlabel(r"1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]")
+    ax.set_ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
+    #ax.set_xlabel(r'$L_X$ [erg s$^{-1}$]')
+    #ax.set_ylabel(r'$L_R$ [erg s$^{-1}$]')
     ax.set_xscale('log', base=10)
     ax.set_yscale('log', base=10)   
     ax.xaxis.set_major_locator(plt.LogLocator(base=10.0, numticks=10))

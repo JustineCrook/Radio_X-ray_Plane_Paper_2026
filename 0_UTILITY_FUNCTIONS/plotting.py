@@ -26,6 +26,8 @@ from scipy.stats import ks_2samp
 from scipy.stats import anderson_ksamp
 import matplotlib.pyplot as plt
 from ndtest import ks2d2s
+from matplotlib.ticker import FixedLocator, StrMethodFormatter, AutoMinorLocator
+from datetime import timezone
 
 import sys
 sys.path.append(os.path.abspath("../0_UTILITY_FUNCTIONS/"))
@@ -110,7 +112,7 @@ state_markersizes_extra_large = {"HS": 15, "SS": 30, "IMS": 20, "QS": 30, "Uncle
 
 min_Lr = 1.5e25
 max_Lr = 3e32 
-max_Lr_2 = 2e31
+max_Lr_2 = 2e31 # when doing LrLx plots (i.e. excluding the bright GRS 1915+105)
 
 min_Lx = 2e30
 max_Lx = 3e39
@@ -168,6 +170,74 @@ def FormatAxis(ax, start_mjd, end_mjd, interval = 60):
     # Line up MJD and Datetime labels 
     mjd_ticks = (Time(mjd_ticks, format='isot').mjd).astype(int)
     mjd_ax.set_xticks(mjd_ticks, labels = mjd_ticks)
+
+
+
+
+def FormatAxis_new(ax, start_mjd, end_mjd, interval=60, round_mjd_labels=True):
+    """
+    Format axis with UTC dates on top and MJD on bottom.
+    
+    Parameters: 
+    - ax (array-like): Array of axes objects
+    - start_mjd (float): Start MJD
+    - end_mjd (float): End MJD        
+    - interval (float, optional): Interval between ticks in days (default: 60)
+    - round_mjd_labels (bool, optional): Whether to round MJD labels to integers (default: True)
+    """
+    primary = ax[0]
+    
+    # Configure minor ticks
+    primary.xaxis.set_minor_locator(AutoMinorLocator(5))
+    primary.tick_params(which='minor', length=3, labelbottom=False, labeltop=False)
+    
+    # Configure primary axis labels and ticks
+    primary.set_xlabel('Observing Date (UTC)', fontfamily='serif', fontsize=14)
+    primary.xaxis.set_label_position('top')
+    primary.tick_params(axis='x', which='major', rotation=10, labeltop=True, labelbottom=False)
+    
+    # Create MJD grid
+    mjd_grid = np.arange(start_mjd, end_mjd + 1e-10, interval)
+    # Convert MJD grid to timezone-aware datetimes (integers represent midnight, so add 0.5 days to get noon UTC)
+    datetimes = [Time(mjd + 0.5, format='mjd', scale="utc").to_datetime() for mjd in mjd_grid]
+    date_nums = mdates.date2num(datetimes)
+    
+    # Set x-limits with padding to ensure first and last ticks are visible
+    start_dt = Time(start_mjd, format='mjd', scale="utc").to_datetime()
+    end_dt = Time(end_mjd + 1, format='mjd', scale="utc").to_datetime()
+    primary.set_xlim(mdates.date2num(start_dt), mdates.date2num(end_dt))
+    
+    # Set tick positions and UTC formatter
+    primary.xaxis.set_major_locator(FixedLocator(date_nums))
+    primary.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d', tz=timezone.utc))
+    
+    # Force draw to update tick positions
+    fig = primary.get_figure()
+    fig.canvas.draw()
+    
+    # Create secondary MJD axis with corrected conversion functions
+    def datenum_to_mjd(x):
+        """Convert matplotlib date number to MJD"""
+        dt = mdates.num2date(x, tz=None)
+        return Time(dt).mjd
+    
+    def mjd_to_datenum(x):
+        """Convert MJD to matplotlib date number"""
+        dt = Time(x, format='mjd', scale="utc").to_datetime()
+        return mdates.date2num(dt)
+    
+    mjd_ax = ax[-1].secondary_xaxis('bottom', functions=(datenum_to_mjd, mjd_to_datenum))
+    mjd_ax.set_xlabel('Observing Date (MJD)', fontfamily='serif', fontsize=14)
+    mjd_ax.minorticks_off()
+    mjd_ax.tick_params(which='major', direction='in', length=0.0, width=0.0)
+    
+    # Set MJD tick labels
+    mjd_labels = np.round(mjd_grid).astype(int) if round_mjd_labels else mjd_grid
+    mjd_ax.set_xticks(mjd_grid, labels=mjd_labels)
+    
+    # Turn off bottom labels on main axis
+    ax[-1].tick_params(axis='x', labelbottom=False)
+    fig.canvas.draw()
 
 
 
@@ -366,9 +436,9 @@ def plot_all_lightcurves(all_df, log=True, show_errorbars=False,highlight_name=N
         # Format x-axes
         if xrays: all_mjd = all_df["t_xray"].to_numpy()
         else: all_mjd = all_df["t_radio"].to_numpy()
-        min_mjd = np.min(all_mjd )
+        min_mjd = np.floor(np.min(all_mjd) / 10) * 10 # to the nearest 10 rounded down
         max_mjd = np.max(all_mjd) 
-        FormatAxis(ax, start_mjd = min_mjd-20, end_mjd = max_mjd+20, interval = 200)
+        FormatAxis_new(ax, start_mjd = min_mjd-20, end_mjd = max_mjd+20, interval = 200)
 
         # y-axis limits
         if ax == ax_lum:
@@ -404,12 +474,12 @@ def plot_all_lightcurves(all_df, log=True, show_errorbars=False,highlight_name=N
         ax[0].legend(loc="upper center", handles=source_legend_handles, bbox_to_anchor=(0.5, -0.1), ncol=int(np.ceil(len(names) / 5)), title="Sources",columnspacing=0.6,handletextpad=0.05,labelspacing=0.3,borderpad=0.3)
     
     if save_name!=None: 
-        fig_lum.savefig(f"../FIGURES/{save_name}_lum.png", dpi=600,bbox_inches="tight")
-        fig_flux.savefig(f"../FIGURES/{save_name}_flux.png", dpi=600,bbox_inches="tight")
+        fig_lum.savefig(f"../FIGURES/{save_name}_lum.png", dpi=300,bbox_inches="tight")
+        fig_flux.savefig(f"../FIGURES/{save_name}_flux.png", dpi=300,bbox_inches="tight")
 
         # Also save as a pdf
-        fig_lum.savefig(f"../FIGURES/{save_name}_lum.pdf", dpi=600,bbox_inches="tight")
-        fig_flux.savefig(f"../FIGURES/{save_name}_flux.pdf", dpi=600,bbox_inches="tight")
+        fig_lum.savefig(f"../FIGURES/{save_name}_lum.pdf", dpi=300,bbox_inches="tight")
+        fig_flux.savefig(f"../FIGURES/{save_name}_flux.pdf", dpi=300,bbox_inches="tight")
 
     plt.show()
 
@@ -569,8 +639,8 @@ def plot_luminosity_histogram_stacked(all_df, n_bins=20,  save_name=None):
 
 
     ## Create source type legend
-    # Replace "candidateBH" with "candidate BH"
-    types = ["candidate BH" if typ == "candidateBH" else typ for typ in types]
+    # Replace "candidateBH" with "BH candidate"
+    types = ["BH candidate" if typ == "candidateBH" else typ for typ in types]
     type_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".",  label=typ) for typ in types]
     phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65) 
     type_legend_handles.append(phantom)
@@ -647,7 +717,7 @@ def plot_Lr_Lx(paired_data, colourby="", states=["HS", "IMS", "SS", "QS", "Uncle
             colour_mask = (paired_data[colourby][mask] == colourby_value) # Create a mask for the current 'colourby' value
             size=35
             if shapes[i]=="s": size=20
-            if colourby_value=="candidateBH": colourby_value = "candidate BH"
+            if colourby_value=="candidateBH": colourby_value = "BH candidate"
             plt.scatter(x[colour_mask], y[colour_mask], color=colours_random[i], label=colourby_value, s=size, marker=shapes[i])
         if colourby=="name": plt.legend(fontsize=9, loc='center left', bbox_to_anchor=(1, 0.5))
         else: plt.legend(fontsize=9)
@@ -975,7 +1045,7 @@ def plot_Lr_Lx_plot1(paired_data, states=["HS", "IMS", "SS", "QS", "Unclear"], t
             )
 
     # Create source type legend
-    types = ["candidate BH" if typ == "candidateBH" else typ for typ in types]
+    types = ["BH candidate" if typ == "candidateBH" else typ for typ in types]
     type_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".",  label=typ) for typ in types]
     phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65) 
     type_legend_handles.append(phantom)
@@ -1008,10 +1078,10 @@ def plot_Lr_Lx_plot1(paired_data, states=["HS", "IMS", "SS", "QS", "Unclear"], t
     plt.xlim([min_Lx,max_Lx])
     plt.ylim([min_Lr,max_Lr_2])
 
-    #plt.xlabel(r'1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]')
-    #plt.ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
-    plt.xlabel(r'$L_X$ [erg s$^{-1}$]')
-    plt.ylabel(r'$L_R$ [erg s$^{-1}$]')
+    plt.xlabel(r'1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]')
+    plt.ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
+    #plt.xlabel(r'$L_X$ [erg s$^{-1}$]')
+    #plt.ylabel(r'$L_R$ [erg s$^{-1}$]')
     ax.set_yscale("log", base=10)
     ax.set_xscale("log", base=10)
     ax.xaxis.set_major_locator(plt.LogLocator(base=10.0, numticks=10))
@@ -1085,7 +1155,7 @@ def plot_Lr_Lx_plot2(paired_data, show_bahramian = True, save_name=None):
 
 
     # Create source type legend
-    types = ["candidate BH" if typ == "candidateBH" else typ for typ in types]
+    types = ["BH candidate" if typ == "candidateBH" else typ for typ in types]
     type_legend_handles = [plt.Line2D([0], [0], color=colour, linestyle='None', markersize=6, label=typ, marker="o") for typ, colour in zip(types, colours)]
     phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65) 
     type_legend_handles.append(phantom)
@@ -1101,10 +1171,10 @@ def plot_Lr_Lx_plot2(paired_data, show_bahramian = True, save_name=None):
     ax.add_artist(state_legend)  
 
 
-    #plt.xlabel(r'1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]')
-    #plt.ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
-    plt.xlabel(r'$L_X$ [erg s$^{-1}$]')
-    plt.ylabel(r'$L_R$ [erg s$^{-1}$]')
+    plt.xlabel(r'1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]')
+    plt.ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
+    #plt.xlabel(r'$L_X$ [erg s$^{-1}$]')
+    #plt.ylabel(r'$L_R$ [erg s$^{-1}$]')
     ax.set_yscale("log", base=10)
     ax.set_xscale("log", base=10)
     ax.xaxis.set_major_locator(plt.LogLocator(base=10.0, numticks=10))
@@ -1116,7 +1186,6 @@ def plot_Lr_Lx_plot2(paired_data, show_bahramian = True, save_name=None):
         plt.savefig(f"../FIGURES/{save_name}.pdf", dpi=600, bbox_inches="tight")
 
     plt.show()
-
 
 
 
@@ -1175,7 +1244,7 @@ def plot_Lr_Lx_plot3(paired_data, source_name= "MAXI J1348-630", save_name=None,
 
 
     # Create source type legend
-    types = ["candidate BH" if typ == "candidateBH" else typ for typ in types]
+    types = ["BH candidate" if typ == "candidateBH" else typ for typ in types]
     type_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".",  label=typ) for typ in types]
     phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65) 
     type_legend_handles.append(phantom)
@@ -1185,13 +1254,20 @@ def plot_Lr_Lx_plot3(paired_data, source_name= "MAXI J1348-630", save_name=None,
 
 
     # Create state legend (within plot) in black
-    states = paired_data_filtered["state"].unique() 
-    markers = [state_markers.get(state, '.') for state in states]
-    state_legend_handles = [plt.Line2D([0], [0], marker=marker, color='black', linestyle='None', markersize=6, label=state) for state, marker in zip(states,markers)] 
+    #states = paired_data_filtered["state"].unique() 
+    #markers = [state_markers.get(state, '.') for state in states]
+    #state_legend_handles = [plt.Line2D([0], [0], marker=marker, color='black', linestyle='None', markersize=6, label=state) for state, marker in zip(states,markers)] 
+    #phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
+    #state_legend_handles.append(phantom)
+    #state_legend = ax.legend(handles=state_legend_handles, loc="upper left",bbox_to_anchor=(0.18, 1.0), title="States", fontsize=10)
+    #ax.add_artist(state_legend)  
+    state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states] 
     phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
     state_legend_handles.append(phantom)
-    state_legend = ax.legend(handles=state_legend_handles, loc="upper left",bbox_to_anchor=(0.18, 1.0), title="States", fontsize=10)
+    state_legend = ax.legend(handles=state_legend_handles, loc="upper left",bbox_to_anchor=(0.18, 1.0), title="States", handlelength=0, fontsize=10)
     ax.add_artist(state_legend)  
+
+
 
 
 
@@ -1217,15 +1293,15 @@ def plot_Lr_Lx_plot3(paired_data, source_name= "MAXI J1348-630", save_name=None,
         # The best fit:
         casefit = lr0 * (10**(alpha)) * ((model_axis/lx0)**(beta)) 
         ax.errorbar(model_axis, casefit, fmt='--', color='black', lw=1.5)
-        ax.errorbar(lx_gx339, lr_gx339, fmt='o', ms=3.5, mec='none', mfc=gx339_color, uplims=delta_gx339, capsize=0.5, ecolor="black", elinewidth=0.4, zorder=8)
+        ax.errorbar(lx_gx339, lr_gx339, fmt='o', ms=7, mec='none', mfc=gx339_color, uplims=delta_gx339, capsize=0.5, ecolor="black", elinewidth=0.4, zorder=8)
 
 
 
     # Create source legend (at bottom) with dots
     ##TODO: Make surce type labelling more general
     source_name_text = source_name.replace("-", "–") 
-    if show_standard_track: legend_handles = [plt.Line2D([0], [0], marker=marker, color=c, linestyle='None', markersize=6, label=data_type) for data_type, marker, c in zip([f"{source_name_text} ({dist} kpc)", "Other BH / candidateBH", "GX 339–4 'standard' track"],["o", ".", "."], [colour, "grey", gx339_color])]
-    else: legend_handles = [plt.Line2D([0], [0], marker=marker, color=c, linestyle='None', markersize=6, label=data_type) for data_type, marker, c in zip([f"{source_name_text} ({dist} kpc)", "Other BH / candidate BH"],["o", "."], [colour, "grey"])]
+    if show_standard_track: legend_handles = [plt.Line2D([0], [0], marker=marker, color=c, linestyle='None', markersize=6, label=data_type) for data_type, marker, c in zip([f"{source_name_text} ({dist} kpc)",  "GX 339–4 'standard' track", "Other BHs / BH candidates"],["o", "o", "."], [colour, gx339_color, "grey"])]
+    else: legend_handles = [plt.Line2D([0], [0], marker=marker, color=c, linestyle='None', markersize=6, label=data_type) for data_type, marker, c in zip([f"{source_name_text} ({dist} kpc)", "Other BHs / BH candidates"],["o", "."], [colour, "grey"])]
     legend = ax.legend(handles=legend_handles, loc="lower right", fontsize=10)
     ax.add_artist(legend) 
 
@@ -1234,10 +1310,10 @@ def plot_Lr_Lx_plot3(paired_data, source_name= "MAXI J1348-630", save_name=None,
     plt.xlim([min_Lx,max_Lx])
     plt.ylim([min_Lr,max_Lr_2])
 
-    #plt.xlabel(r'1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]')
-    #plt.ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
-    plt.xlabel(r'$L_X$ [erg s$^{-1}$]')
-    plt.ylabel(r'$L_R$ [erg s$^{-1}$]')
+    plt.xlabel(r'1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]')
+    plt.ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
+    #plt.xlabel(r'$L_X$ [erg s$^{-1}$]')
+    #plt.ylabel(r'$L_R$ [erg s$^{-1}$]')
     ax.set_yscale("log", base=10)
     ax.set_xscale("log", base=10)
     ax.xaxis.set_major_locator(plt.LogLocator(base=10.0, numticks=10))
@@ -1253,30 +1329,75 @@ def plot_Lr_Lx_plot3(paired_data, source_name= "MAXI J1348-630", save_name=None,
 
 
 
+
+
 ##############################################################################################################
 ## LRLX PLOTS FOR PAPER -- BH VS NS DETECTIONS
 
 
 def plot_LrLx_BH_vs_NS_detections(df):
 
+    states = ["HS", "QS"]
+
+
     ## Get the BH and NS data
-    mask_NS = df["class"].isin(["NS"]) 
-    mask_BH = df["class"].isin(["BH", "candidateBH"]) 
-    x_NS = df["Lx"][mask_NS]
-    y_NS = df["Lr"][mask_NS]
-    x_BH = df["Lx"][mask_BH]
-    y_BH =  df["Lr"][mask_BH]
+    mask_NS = df["class"].isin(["NS"]) & df["state"].isin(states) 
+    mask_BH = df["class"].isin(["BH", "candidateBH"]) & df["state"].isin(states) 
 
-    ## Convert to log scale
-    log_x_NS = np.log10(x_NS).to_numpy()
-    log_y_NS = np.log10(y_NS).to_numpy()
-    log_x_BH = np.log10(x_BH).to_numpy()
-    log_y_BH =  np.log10(y_BH).to_numpy()
+    mask_NS_detections = mask_NS & (df["Fr_uplim_bool"]==False) & (df["Fx_uplim_bool"]==False)
+    mask_BH_detections = mask_BH & (df["Fr_uplim_bool"]==False) & (df["Fx_uplim_bool"]==False)
 
+    mask_NS_uplims = mask_NS & ( (df["Fr_uplim_bool"]==True) | (df["Fx_uplim_bool"]==True) )
+    mask_BH_uplims = mask_BH & ( (df["Fr_uplim_bool"]==True) | (df["Fx_uplim_bool"]==True) )
+
+
+    ## Detections
+    x_NS_det = df["Lx"][mask_NS_detections]
+    y_NS_det = df["Lr"][mask_NS_detections]
+    x_BH_det = df["Lx"][mask_BH_detections]
+    y_BH_det =  df["Lr"][mask_BH_detections]
+    # Convert to log scale
+    log_x_NS_det = np.log10(x_NS_det).to_numpy()
+    log_y_NS_det = np.log10(y_NS_det).to_numpy()
+    log_x_BH_det = np.log10(x_BH_det).to_numpy()
+    log_y_BH_det =  np.log10(y_BH_det).to_numpy()
+
+
+    ## Upper limits
+    x_NS_uplim = df["Lx"][mask_NS_uplims].to_numpy()
+    y_NS_uplim = df["Lr"][mask_NS_uplims].to_numpy()
+    y_NS_uplim_bool = df["Fr_uplim_bool"][mask_NS_uplims].to_numpy()
+    x_NS_uplim_bool = df["Fx_uplim_bool"][mask_NS_uplims].to_numpy()
+    dx_NS_uplim = np.zeros(len(x_NS_uplim)) # we don't plot the error bars
+    dx_NS_uplim[x_NS_uplim_bool] = x_NS_uplim[x_NS_uplim_bool]/3
+    dy_NS_uplim = np.zeros(len(y_NS_uplim))  # we don't plot the error bars
+    dy_NS_uplim[y_NS_uplim_bool] = y_NS_uplim[y_NS_uplim_bool]/3
+
+    log_x_NS_uplim = np.log10(x_NS_uplim)
+    log_y_NS_uplim = np.log10(y_NS_uplim)
+    log_dx_NS_uplim = dx_NS_uplim / (x_NS_uplim * np.log(10))
+    log_dy_NS_uplim = dy_NS_uplim / (y_NS_uplim * np.log(10))
+
+    x_BH_uplim = df["Lx"][mask_BH_uplims].to_numpy()
+    y_BH_uplim = df["Lr"][mask_BH_uplims].to_numpy()
+    y_BH_uplim_bool = df["Fr_uplim_bool"][mask_BH_uplims].to_numpy()
+    x_BH_uplim_bool = df["Fx_uplim_bool"][mask_BH_uplims].to_numpy()
+    dx_BH_uplim = np.zeros(len(x_BH_uplim))  # we don't plot the error bars  
+    dx_BH_uplim[x_BH_uplim_bool] = x_BH_uplim[x_BH_uplim_bool]/3
+    dy_BH_uplim = np.zeros(len(y_BH_uplim))  # we don't plot the error bars
+    dy_BH_uplim[y_BH_uplim_bool] = y_BH_uplim[y_BH_uplim_bool]/3
+
+    log_x_BH_uplim = np.log10(x_BH_uplim)
+    log_y_BH_uplim = np.log10(y_BH_uplim)
+    log_dx_BH_uplim = dx_BH_uplim / (x_BH_uplim * np.log(10))
+    log_dy_BH_uplim = dy_BH_uplim / (y_BH_uplim * np.log(10))
+
+
+    ##################
 
     ## KS Tests
-    pval_Lx = ks_2samp(log_x_NS, log_x_BH).pvalue
-    pval_Lr = ks_2samp(log_y_NS, log_y_BH).pvalue
+    pval_Lx = ks_2samp(log_x_NS_det, log_x_BH_det).pvalue
+    pval_Lr = ks_2samp(log_y_NS_det, log_y_BH_det).pvalue
     #pval_2D, D_2D = ks2d2s(log_x_NS, log_y_NS, log_x_BH, log_y_BH, extra=True)
 
     ## Define log bins
@@ -1293,13 +1414,24 @@ def plot_LrLx_BH_vs_NS_detections(df):
     ax_right = fig.add_subplot(gs[1, 1], sharey=ax_main)
 
     ## Main scatter + KDE
-    ax_main.scatter(log_x_NS, log_y_NS, color=colour_NS, alpha=0.6, label="NS")
-    ax_main.scatter(log_x_BH, log_y_BH, color=colour_BH, alpha=0.6, label="BH & candidate BH")
+    ax_main.scatter(log_x_NS_det, log_y_NS_det, color=colour_NS, alpha=0.6, label="NS")
+    ax_main.scatter(log_x_BH_det, log_y_BH_det, color=colour_BH, alpha=0.6, label="BH & BH candidate")
 
     levels = [0.05, 0.25, 0.6, 0.9]
 
-    sns.kdeplot(x=log_x_NS, y=log_y_NS, ax=ax_main, levels=levels, color=colour_NS, linewidths=1, fill=False)
-    sns.kdeplot(x=log_x_BH, y=log_y_BH, ax=ax_main, levels=levels, color=colour_BH, linewidths=1, fill=False)
+    sns.kdeplot(x=log_x_NS_det, y=log_y_NS_det, ax=ax_main, levels=levels, color=colour_NS, linewidths=1, fill=False)
+    sns.kdeplot(x=log_x_BH_det, y=log_y_BH_det, ax=ax_main, levels=levels, color=colour_BH, linewidths=1, fill=False)
+
+
+    #############
+    ## Plot the upper limits
+
+    ax_main.errorbar(log_x_NS_uplim, log_y_NS_uplim, xerr=log_dx_NS_uplim, yerr=log_dy_NS_uplim, uplims = y_NS_uplim_bool, xuplims=x_NS_uplim_bool, fmt='o', color=colour_NS, alpha=0.2) 
+    ax_main.errorbar(log_x_BH_uplim, log_y_BH_uplim, xerr=log_dx_BH_uplim, yerr=log_dy_BH_uplim, uplims = y_BH_uplim_bool, xuplims=x_BH_uplim_bool, fmt='o', color=colour_BH, alpha=0.2) 
+
+
+    #############
+
 
     ## Create state legend (within plot) in black
     states = ["HS","QS"]
@@ -1317,20 +1449,20 @@ def plot_LrLx_BH_vs_NS_detections(df):
 
 
     ## Top histogram (Lx)
-    ax_top.hist(log_x_NS, bins=log_bins_x, density=True, alpha=0.1, color=colour_NS)
-    ax_top.hist(log_x_BH, bins=log_bins_x, density=True, alpha=0.1, color=colour_BH)
-    sns.kdeplot(log_x_NS, fill=True, alpha=0.2, linewidth=2, color=colour_NS, ax=ax_top)
-    sns.kdeplot(log_x_BH, fill=True, alpha=0.2, linewidth=2, color=colour_BH, ax=ax_top)
+    ax_top.hist(log_x_NS_det, bins=log_bins_x, density=True, alpha=0.1, color=colour_NS)
+    ax_top.hist(log_x_BH_det, bins=log_bins_x, density=True, alpha=0.1, color=colour_BH)
+    sns.kdeplot(log_x_NS_det, fill=True, alpha=0.2, linewidth=2, color=colour_NS, ax=ax_top)
+    sns.kdeplot(log_x_BH_det, fill=True, alpha=0.2, linewidth=2, color=colour_BH, ax=ax_top)
     ax_top.set_ylabel("Density")
     ax_top.text(0.98, 0.9, f"KS: p = {pval_Lx:.2g}", transform=ax_top.transAxes, ha='right', va='top', fontsize=10, bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8))
     plt.setp(ax_top.get_xticklabels(), visible=False)
 
 
     ## Right histogram (Lr)
-    ax_right.hist(log_y_NS, bins=log_bins_y, density=True, alpha=0.1, color=colour_NS, orientation='horizontal')
-    ax_right.hist(log_y_BH, bins=log_bins_y, density=True, alpha=0.1, color=colour_BH, orientation='horizontal')
-    sns.kdeplot(y=log_y_NS, fill=True, alpha=0.2, linewidth=2, color=colour_NS, ax=ax_right)
-    sns.kdeplot(y=log_y_BH, fill=True, alpha=0.2, linewidth=2, color=colour_BH, ax=ax_right)
+    ax_right.hist(log_y_NS_det, bins=log_bins_y, density=True, alpha=0.1, color=colour_NS, orientation='horizontal')
+    ax_right.hist(log_y_BH_det, bins=log_bins_y, density=True, alpha=0.1, color=colour_BH, orientation='horizontal')
+    sns.kdeplot(y=log_y_NS_det, fill=True, alpha=0.2, linewidth=2, color=colour_NS, ax=ax_right)
+    sns.kdeplot(y=log_y_BH_det, fill=True, alpha=0.2, linewidth=2, color=colour_BH, ax=ax_right)
     ax_right.set_xlabel("Density")
     ax_right.text(0.92, 0.97, f"KS: p = {pval_Lr:.2g}", transform=ax_right.transAxes, ha='right', va='top', fontsize=10, bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8))
     plt.setp(ax_right.get_yticklabels(), visible=False)
@@ -1369,13 +1501,14 @@ def plot_LrLx_BH_vs_NS_detections(df):
     ## Set axis limits and labels
     ax_main.set_xlim([np.log10(min_Lx), np.log10(max_Lx)])
     ax_main.set_ylim([np.log10(min_Lr), np.log10(max_Lr_2)])
-    ax_main.set_xlabel(r'$L_X$ [erg s$^{-1}$]')
-    ax_main.set_ylabel(r'$L_R$ [erg s$^{-1}$]')
+    #ax_main.set_xlabel(r'$L_X$ [erg s$^{-1}$]')
+    #ax_main.set_ylabel(r'$L_R$ [erg s$^{-1}$]')
+    ax_main.set_xlabel(r'1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]')
+    ax_main.set_ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
 
     save_name = "BH_NS_distributions_interp"
     plt.savefig(f"../FIGURES/{save_name}.png", dpi=600,bbox_inches="tight")
     plt.savefig(f"../FIGURES/{save_name}.pdf", dpi=600,bbox_inches="tight")
 
     plt.show()
-
 

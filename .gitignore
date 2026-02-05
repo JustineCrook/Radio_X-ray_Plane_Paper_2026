@@ -2,3 +2,5 @@ lrlx_paper_venv/
 __pycache__/
 DATA/ORIGINAL/
 DATA/convert_format.ipynb
+5_LIN_REG/MCMC_parfiles*
+5_LIN_REG/input_files/
