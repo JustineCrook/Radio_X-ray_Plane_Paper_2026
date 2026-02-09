@@ -181,13 +181,14 @@ def transform1_back(pca_data_scaled, original_means, original_stds, pca_model, p
 
 
 
-def transform1_alt(data, standardise):
+def transform1_alt(data, standardise_before=True, standardise_after=True):
     """
     The following should be equivalent to the function above, with the option of whether to standardise. 
     
     Steps: 
+    - Takes the log
     - (Standardise)
-    - PCA with whiten=True
+    - PCA with whiten=True or False
     """
 
     Lx = data[:,0]
@@ -199,13 +200,15 @@ def transform1_alt(data, standardise):
 
     data = np.column_stack((log_Lx, log_Lr))
 
-    if standardise:
+    if standardise_before:
         scaler = StandardScaler()
         data = scaler.fit_transform(data)
     
 
-    data = PCA(n_components=2, whiten=True).fit_transform(data)
-
+    if standardise_after: 
+        data = PCA(n_components=2, whiten=True).fit_transform(data)
+    else: 
+        data = PCA(n_components=2, whiten=False).fit_transform(data)
 
     return data
 

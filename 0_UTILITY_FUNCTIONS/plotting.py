@@ -1269,8 +1269,6 @@ def plot_Lr_Lx_plot3(paired_data, source_name= "MAXI J1348-630", save_name=None,
 
 
 
-
-
     # Filter GX339 to get the region of interest
     t0 = 58964
     t1 = 59083
@@ -1335,70 +1333,104 @@ def plot_Lr_Lx_plot3(paired_data, source_name= "MAXI J1348-630", save_name=None,
 ## LRLX PLOTS FOR PAPER -- BH VS NS DETECTIONS
 
 
-def plot_LrLx_BH_vs_NS_detections(df):
+def plot_LrLx_comparison(df, plot_type="BH_vs_NS", add_2D_ks=True):
 
-    states = ["HS", "QS"]
+    if plot_type not in ["BH_vs_NS", "HS_vs_SS"]:
+        print("Invalid plot type. Choose 'BH_vs_NS' or 'HS_vs_SS'.")
+        return
 
 
-    ## Get the BH and NS data
-    mask_NS = df["class"].isin(["NS"]) & df["state"].isin(states) 
-    mask_BH = df["class"].isin(["BH", "candidateBH"]) & df["state"].isin(states) 
+    if plot_type == "BH_vs_NS":
+        ## Get the BH and NS masks
 
-    mask_NS_detections = mask_NS & (df["Fr_uplim_bool"]==False) & (df["Fx_uplim_bool"]==False)
-    mask_BH_detections = mask_BH & (df["Fr_uplim_bool"]==False) & (df["Fx_uplim_bool"]==False)
+        mask1 = df["class"].isin(["NS"]) & df["state"].isin(["HS", "QS"]) 
+        mask2 = df["class"].isin(["BH", "candidateBH"]) & df["state"].isin(["HS", "QS"]) 
+    
+        mask1_detections = mask1 & (df["Fr_uplim_bool"]==False) & (df["Fx_uplim_bool"]==False)
+        mask2_detections = mask2 & (df["Fr_uplim_bool"]==False) & (df["Fx_uplim_bool"]==False)
 
-    mask_NS_uplims = mask_NS & ( (df["Fr_uplim_bool"]==True) | (df["Fx_uplim_bool"]==True) )
-    mask_BH_uplims = mask_BH & ( (df["Fr_uplim_bool"]==True) | (df["Fx_uplim_bool"]==True) )
+        mask1_uplims = mask1 & ( (df["Fr_uplim_bool"]==True) | (df["Fx_uplim_bool"]==True) )
+        mask2_uplims = mask2 & ( (df["Fr_uplim_bool"]==True) | (df["Fx_uplim_bool"]==True) )
+
+        colour1 = colour_NS
+        colour2= colour_BH
+
+        label1 = "NS"
+        label2 = "BH & BH candidate"
+
+
+    elif plot_type == "HS_vs_SS":
+        ## Get the HS and SS masks -- just for BHs and candidate BHs
+
+        mask1 = df["state"].isin(["HS", "QS"])  & (df["class"].isin(["BH", "candidateBH"])) 
+        mask2 = df["state"].isin(["SS"])  & (df["class"].isin(["BH", "candidateBH"])) 
+    
+        mask1_detections = mask1 & (df["Fr_uplim_bool"]==False) & (df["Fx_uplim_bool"]==False)
+        mask2_detections = mask2 & (df["Fr_uplim_bool"]==False) & (df["Fx_uplim_bool"]==False)
+
+        mask1_uplims = mask1 & ( (df["Fr_uplim_bool"]==True) | (df["Fx_uplim_bool"]==True) )
+        mask2_uplims = mask2 & ( (df["Fr_uplim_bool"]==True) | (df["Fx_uplim_bool"]==True) )
+
+        colour1 = "green"
+        colour2= "orange"
+        
+        label1 = "HS & QS"
+        label2 = "SS"
+ 
+
 
 
     ## Detections
-    x_NS_det = df["Lx"][mask_NS_detections]
-    y_NS_det = df["Lr"][mask_NS_detections]
-    x_BH_det = df["Lx"][mask_BH_detections]
-    y_BH_det =  df["Lr"][mask_BH_detections]
+    x1_det = df["Lx"][mask1_detections]
+    y1_det = df["Lr"][mask1_detections]
+    x2_det = df["Lx"][mask2_detections]
+    y2_det =  df["Lr"][mask2_detections]
     # Convert to log scale
-    log_x_NS_det = np.log10(x_NS_det).to_numpy()
-    log_y_NS_det = np.log10(y_NS_det).to_numpy()
-    log_x_BH_det = np.log10(x_BH_det).to_numpy()
-    log_y_BH_det =  np.log10(y_BH_det).to_numpy()
+    log_x1_det = np.log10(x1_det).to_numpy()
+    log_y1_det = np.log10(y1_det).to_numpy()
+    log_x2_det = np.log10(x2_det).to_numpy()
+    log_y2_det =  np.log10(y2_det).to_numpy()
 
 
     ## Upper limits
-    x_NS_uplim = df["Lx"][mask_NS_uplims].to_numpy()
-    y_NS_uplim = df["Lr"][mask_NS_uplims].to_numpy()
-    y_NS_uplim_bool = df["Fr_uplim_bool"][mask_NS_uplims].to_numpy()
-    x_NS_uplim_bool = df["Fx_uplim_bool"][mask_NS_uplims].to_numpy()
-    dx_NS_uplim = np.zeros(len(x_NS_uplim)) # we don't plot the error bars
-    dx_NS_uplim[x_NS_uplim_bool] = x_NS_uplim[x_NS_uplim_bool]/3
-    dy_NS_uplim = np.zeros(len(y_NS_uplim))  # we don't plot the error bars
-    dy_NS_uplim[y_NS_uplim_bool] = y_NS_uplim[y_NS_uplim_bool]/3
+    x1_uplim = df["Lx"][mask1_uplims].to_numpy()
+    y1_uplim = df["Lr"][mask1_uplims].to_numpy()
+    y1_uplim_bool = df["Fr_uplim_bool"][mask1_uplims].to_numpy()
+    x1_uplim_bool = df["Fx_uplim_bool"][mask1_uplims].to_numpy()
+    dx1_uplim = np.zeros(len(x1_uplim)) # we don't plot the error bars
+    dx1_uplim[x1_uplim_bool] = x1_uplim[x1_uplim_bool]/3
+    dy1_uplim = np.zeros(len(y1_uplim))  # we don't plot the error bars
+    dy1_uplim[y1_uplim_bool] = y1_uplim[y1_uplim_bool]/3
 
-    log_x_NS_uplim = np.log10(x_NS_uplim)
-    log_y_NS_uplim = np.log10(y_NS_uplim)
-    log_dx_NS_uplim = dx_NS_uplim / (x_NS_uplim * np.log(10))
-    log_dy_NS_uplim = dy_NS_uplim / (y_NS_uplim * np.log(10))
+    log_x1_uplim = np.log10(x1_uplim)
+    log_y1_uplim = np.log10(y1_uplim)
+    log_dx1_uplim = dx1_uplim / (x1_uplim * np.log(10))
+    log_dy1_uplim = dy1_uplim / (y1_uplim * np.log(10))
 
-    x_BH_uplim = df["Lx"][mask_BH_uplims].to_numpy()
-    y_BH_uplim = df["Lr"][mask_BH_uplims].to_numpy()
-    y_BH_uplim_bool = df["Fr_uplim_bool"][mask_BH_uplims].to_numpy()
-    x_BH_uplim_bool = df["Fx_uplim_bool"][mask_BH_uplims].to_numpy()
-    dx_BH_uplim = np.zeros(len(x_BH_uplim))  # we don't plot the error bars  
-    dx_BH_uplim[x_BH_uplim_bool] = x_BH_uplim[x_BH_uplim_bool]/3
-    dy_BH_uplim = np.zeros(len(y_BH_uplim))  # we don't plot the error bars
-    dy_BH_uplim[y_BH_uplim_bool] = y_BH_uplim[y_BH_uplim_bool]/3
+    x2_uplim = df["Lx"][mask2_uplims].to_numpy()
+    y2_uplim = df["Lr"][mask2_uplims].to_numpy()
+    y2_uplim_bool = df["Fr_uplim_bool"][mask2_uplims].to_numpy()
+    x2_uplim_bool = df["Fx_uplim_bool"][mask2_uplims].to_numpy()
+    dx2_uplim = np.zeros(len(x2_uplim))  # we don't plot the error bars  
+    dx2_uplim[x2_uplim_bool] = x2_uplim[x2_uplim_bool]/3
+    dy2_uplim = np.zeros(len(y2_uplim))  # we don't plot the error bars
+    dy2_uplim[y2_uplim_bool] = y2_uplim[y2_uplim_bool]/3
 
-    log_x_BH_uplim = np.log10(x_BH_uplim)
-    log_y_BH_uplim = np.log10(y_BH_uplim)
-    log_dx_BH_uplim = dx_BH_uplim / (x_BH_uplim * np.log(10))
-    log_dy_BH_uplim = dy_BH_uplim / (y_BH_uplim * np.log(10))
+    log_x2_uplim = np.log10(x2_uplim)
+    log_y2_uplim = np.log10(y2_uplim)
+    log_dx2_uplim = dx2_uplim / (x2_uplim * np.log(10))
+    log_dy2_uplim = dy2_uplim / (y2_uplim * np.log(10))
 
 
     ##################
 
     ## KS Tests
-    pval_Lx = ks_2samp(log_x_NS_det, log_x_BH_det).pvalue
-    pval_Lr = ks_2samp(log_y_NS_det, log_y_BH_det).pvalue
-    #pval_2D, D_2D = ks2d2s(log_x_NS, log_y_NS, log_x_BH, log_y_BH, extra=True)
+    pval_Lx = ks_2samp(log_x1_det, log_x2_det).pvalue
+    pval_Lr = ks_2samp(log_y1_det, log_y2_det).pvalue
+    pval_2D, D_2D = ks2d2s(log_x1_det, log_y1_det, log_x2_det, log_y2_det, extra=True)
+
+
+    ##################
 
     ## Define log bins
     nbins = 20
@@ -1414,55 +1446,74 @@ def plot_LrLx_BH_vs_NS_detections(df):
     ax_right = fig.add_subplot(gs[1, 1], sharey=ax_main)
 
     ## Main scatter + KDE
-    ax_main.scatter(log_x_NS_det, log_y_NS_det, color=colour_NS, alpha=0.6, label="NS")
-    ax_main.scatter(log_x_BH_det, log_y_BH_det, color=colour_BH, alpha=0.6, label="BH & BH candidate")
+    ax_main.scatter(log_x1_det, log_y1_det, color=colour1, alpha=0.6, label=label1)
+    ax_main.scatter(log_x2_det, log_y2_det, color=colour2, alpha=0.6, label=label2)
 
     levels = [0.05, 0.25, 0.6, 0.9]
 
-    sns.kdeplot(x=log_x_NS_det, y=log_y_NS_det, ax=ax_main, levels=levels, color=colour_NS, linewidths=1, fill=False)
-    sns.kdeplot(x=log_x_BH_det, y=log_y_BH_det, ax=ax_main, levels=levels, color=colour_BH, linewidths=1, fill=False)
+    sns.kdeplot(x=log_x1_det, y=log_y1_det, ax=ax_main, levels=levels, color=colour1, linewidths=1, fill=False)
+    sns.kdeplot(x=log_x2_det, y=log_y2_det, ax=ax_main, levels=levels, color=colour2, linewidths=1, fill=False)
 
 
     #############
     ## Plot the upper limits
 
-    ax_main.errorbar(log_x_NS_uplim, log_y_NS_uplim, xerr=log_dx_NS_uplim, yerr=log_dy_NS_uplim, uplims = y_NS_uplim_bool, xuplims=x_NS_uplim_bool, fmt='o', color=colour_NS, alpha=0.2) 
-    ax_main.errorbar(log_x_BH_uplim, log_y_BH_uplim, xerr=log_dx_BH_uplim, yerr=log_dy_BH_uplim, uplims = y_BH_uplim_bool, xuplims=x_BH_uplim_bool, fmt='o', color=colour_BH, alpha=0.2) 
+    ax_main.errorbar(log_x1_uplim, log_y1_uplim, xerr=log_dx1_uplim, yerr=log_dy1_uplim, uplims = y1_uplim_bool, xuplims=x1_uplim_bool, fmt='o', color=colour1, alpha=0.2) 
+    ax_main.errorbar(log_x2_uplim, log_y2_uplim, xerr=log_dx2_uplim, yerr=log_dy2_uplim, uplims = y2_uplim_bool, xuplims=x2_uplim_bool, fmt='o', color=colour2, alpha=0.2) 
 
 
     #############
 
 
-    ## Create state legend (within plot) in black
-    states = ["HS","QS"]
-    state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states] 
-    phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
-    state_legend_handles.append(phantom)
-    state_legend = ax_main.legend(handles=state_legend_handles, loc="upper left",bbox_to_anchor=(0.0, 0.79), title="States", handlelength=0, fontsize=10)
-    ax_main.add_artist(state_legend)  
+    if plot_type == "BH_vs_NS":
+        ## Create state legend (within plot) in black
+        states = ["HS","QS"]
+        state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states] 
+        phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
+        state_legend_handles.append(phantom)
+        state_legend = ax_main.legend(handles=state_legend_handles, loc="upper left",bbox_to_anchor=(0.0, 0.79), title="States", handlelength=0, fontsize=10)
+        ax_main.add_artist(state_legend)  
 
-    ## Create types legend
-    ax_main.legend( fontsize=9,loc="upper left", title="Types")
+        ## Create types legend
+        ax_main.legend( fontsize=9,loc="upper left", title="Types")
 
-    ## Add 2D KS p-value to legend
-    #ax_main.text(0.98, 0.02, f"2D KS: p = {pval_2D:.2g}", transform=ax_main.transAxes, ha='right', va='bottom', fontsize=10, bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8))
+
+    elif plot_type == "HS_vs_SS":
+        ## Create source type legend
+        types = ["BH", "BH candidate"]
+        type_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".",  label=typ) for typ in types]
+        phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65) 
+        type_legend_handles.append(phantom)
+        type_legend = ax_main.legend(handles=type_legend_handles,loc="upper left", bbox_to_anchor=(0.0, 0.79), title="Types", handlelength=0, fontsize=10) # bbox_to_anchor=(0.0, 0.68)
+        ax_main.add_artist(type_legend)
+
+        ## Create types legend
+        ax_main.legend( fontsize=9,loc="upper left", title="States")
+
+
+    
+    if add_2D_ks:
+        ## Add 2D KS p-value to legend
+        ax_main.text(0.98, 0.02, f"2D KS: p = {pval_2D:.2g}", transform=ax_main.transAxes, ha='right', va='bottom', fontsize=10, bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8))
 
 
     ## Top histogram (Lx)
-    ax_top.hist(log_x_NS_det, bins=log_bins_x, density=True, alpha=0.1, color=colour_NS)
-    ax_top.hist(log_x_BH_det, bins=log_bins_x, density=True, alpha=0.1, color=colour_BH)
-    sns.kdeplot(log_x_NS_det, fill=True, alpha=0.2, linewidth=2, color=colour_NS, ax=ax_top)
-    sns.kdeplot(log_x_BH_det, fill=True, alpha=0.2, linewidth=2, color=colour_BH, ax=ax_top)
+    ax_top.hist(log_x1_det, bins=log_bins_x, density=True, alpha=0.1, color=colour1)
+    ax_top.hist(log_x2_det, bins=log_bins_x, density=True, alpha=0.1, color=colour2)
+    sns.kdeplot(log_x1_det, fill=True, alpha=0.2, linewidth=2, color=colour1, ax=ax_top)
+    sns.kdeplot(log_x2_det, fill=True, alpha=0.2, linewidth=2, color=colour2, ax=ax_top)
     ax_top.set_ylabel("Density")
-    ax_top.text(0.98, 0.9, f"KS: p = {pval_Lx:.2g}", transform=ax_top.transAxes, ha='right', va='top', fontsize=10, bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8))
+    if plot_type == "BH_vs_NS": left = 0.98
+    elif plot_type == "HS_vs_SS": left = 0.23
+    ax_top.text(left, 0.9, rf"KS: $p$ = {pval_Lx:.2g}", transform=ax_top.transAxes, ha='right', va='top', fontsize=10, bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8))
     plt.setp(ax_top.get_xticklabels(), visible=False)
 
-
+ 
     ## Right histogram (Lr)
-    ax_right.hist(log_y_NS_det, bins=log_bins_y, density=True, alpha=0.1, color=colour_NS, orientation='horizontal')
-    ax_right.hist(log_y_BH_det, bins=log_bins_y, density=True, alpha=0.1, color=colour_BH, orientation='horizontal')
-    sns.kdeplot(y=log_y_NS_det, fill=True, alpha=0.2, linewidth=2, color=colour_NS, ax=ax_right)
-    sns.kdeplot(y=log_y_BH_det, fill=True, alpha=0.2, linewidth=2, color=colour_BH, ax=ax_right)
+    ax_right.hist(log_y1_det, bins=log_bins_y, density=True, alpha=0.1, color=colour1, orientation='horizontal')
+    ax_right.hist(log_y2_det, bins=log_bins_y, density=True, alpha=0.1, color=colour2, orientation='horizontal')
+    sns.kdeplot(y=log_y1_det, fill=True, alpha=0.2, linewidth=2, color=colour1, ax=ax_right)
+    sns.kdeplot(y=log_y2_det, fill=True, alpha=0.2, linewidth=2, color=colour2, ax=ax_right)
     ax_right.set_xlabel("Density")
     ax_right.text(0.92, 0.97, f"KS: p = {pval_Lr:.2g}", transform=ax_right.transAxes, ha='right', va='top', fontsize=10, bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8))
     plt.setp(ax_right.get_yticklabels(), visible=False)
@@ -1483,7 +1534,7 @@ def plot_LrLx_BH_vs_NS_detections(df):
     ax_main.xaxis.set_minor_formatter(FuncFormatter(lambda val, _: ""))
 
 
-    ## Format y-axis
+    ## Format y-axis 
     log_ymin = np.log10(min_Lr)
     log_ymax = np.log10(max_Lr_2)
     log_start_y = int(np.floor(log_ymin))
@@ -1506,7 +1557,10 @@ def plot_LrLx_BH_vs_NS_detections(df):
     ax_main.set_xlabel(r'1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]')
     ax_main.set_ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
 
-    save_name = "BH_NS_distributions_interp"
+    if plot_type == "BH_vs_NS":
+        save_name = "BH_NS_distributions_interp"
+    elif plot_type == "HS_vs_SS":
+        save_name = "HS_SS_distributions_interp"
     plt.savefig(f"../FIGURES/{save_name}.png", dpi=600,bbox_inches="tight")
     plt.savefig(f"../FIGURES/{save_name}.pdf", dpi=600,bbox_inches="tight")
 

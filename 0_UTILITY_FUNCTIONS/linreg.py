@@ -780,7 +780,7 @@ def linmix_results_BH_vs_NS(N_runs=1, interp=True, save_name="BH_vs_NS"):
     # Ensure the 'Best fit' label is identified first
     sorted_pairs = sorted(zip(labels, handles), key=lambda x: 0 if r'$\beta$' in x[0] else 1)
     sorted_labels, sorted_handles = zip(*sorted_pairs)
-    bestfit_legend = ax.legend(sorted_handles, sorted_labels, fontsize=10, loc="upper left", bbox_transform=ax.transAxes, title="Best fits", labelspacing=0.5)   
+    bestfit_legend = ax.legend(sorted_handles, sorted_labels, fontsize=10, loc="upper left", bbox_transform=ax.transAxes, title="Best fits", labelspacing=0.6)   
     ax.add_artist(bestfit_legend)
     
     # Create state legend (within plot) in black
@@ -788,7 +788,7 @@ def linmix_results_BH_vs_NS(N_runs=1, interp=True, save_name="BH_vs_NS"):
     state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states] 
     phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
     state_legend_handles.append(phantom)
-    state_legend = ax.legend(handles=state_legend_handles, bbox_to_anchor=(0.125, 0.62), bbox_transform=ax.transAxes, title="States", handlelength=0, fontsize=10) # bbox_to_anchor=(0.125, 0.578)
+    state_legend = ax.legend(handles=state_legend_handles, loc="upper left", bbox_to_anchor=(0.277, 0.815), bbox_transform=ax.transAxes, title="States", handlelength=0, fontsize=10) # bbox_to_anchor=(0.125, 0.578)
     ax.add_artist(state_legend)  
 
 
@@ -798,7 +798,7 @@ def linmix_results_BH_vs_NS(N_runs=1, interp=True, save_name="BH_vs_NS"):
     type_legend_handles = [plt.Line2D([0], [0], marker='o', color=colour, linestyle='None', markersize=6, label=type_source) for type_source, colour in zip(types,colours)] 
     phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
     type_legend_handles.append(phantom)
-    type_legend = ax.legend(handles=type_legend_handles, loc="upper left",bbox_to_anchor=(0.277, 1.0), bbox_transform=ax.transAxes, title="Types", fontsize=10)
+    type_legend = ax.legend(handles=type_legend_handles, loc="upper left", bbox_to_anchor=(0.277, 1.0), bbox_transform=ax.transAxes, title="Types", fontsize=10)
     ax.add_artist(type_legend) 
 
 
@@ -821,6 +821,8 @@ def linmix_results_BH_vs_NS(N_runs=1, interp=True, save_name="BH_vs_NS"):
         plt.savefig(f"../FIGURES/{save_name}.pdf", dpi=600, bbox_inches='tight', pad_inches=0.02)
 
     plt.show()
+
+
 
 
 

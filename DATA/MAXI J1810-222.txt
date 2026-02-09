@@ -2,11 +2,11 @@
 
 ## SOURCE_METADATA
 # class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
-candidateBH,8.77,-1.98, [],8.0, "(""uniform"", 6, 25)", 6.0-25.0, [https://ui.adsabs.harvard.edu/abs/2022MNRAS.513.6196R/abstract]
+candidateBH,8.77,-1.98, [],8.0, "(""uniform"", 6, 17)", 6.0-17.0, [https://ui.adsabs.harvard.edu/abs/2022MNRAS.513.6196R/abstract]
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
-68, [Savard et al. (in prep.) & ], [Savard et al. (in prep.) & ],,
+68, [Crook-Mansour et al. (in prep.) & ], [Crook-Mansour et al. (in prep.) & ],,
 
 
 
