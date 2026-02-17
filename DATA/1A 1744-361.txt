@@ -1,7 +1,5 @@
 ## Data from Andrew
 
-
-
 ## SOURCE_METADATA
 # class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
 NS,354.12,-4.192, [],8.0, "(""uniform"", 1, 10)", 1.0-10.0, [https://ui.adsabs.harvard.edu/abs/2006ApJ...639L..31B/abstract]
@@ -10,8 +8,6 @@ NS,354.12,-4.192, [],8.0, "(""uniform"", 1, 10)", 1.0-10.0, [https://ui.adsabs.h
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
 68, [Mason et al. 2024 & https://ui.adsabs.harvard.edu/abs/2024ApJ...966..232N/abstract], [Crook-Mansour et al. (in prep) &],,
-
-
 
 
 
@@ -38,7 +34,9 @@ NS,354.12,-4.192, [],8.0, "(""uniform"", 1, 10)", 1.0-10.0, [https://ui.adsabs.h
 00000031222026,59812.3041,0.33325,decay,HS,1.054E-10,4.035E-12,4.043E-12,,tbabs * (pegpwrlw + bbody),chi
 00000031222027,59813.7557,0.34252,decay,HS,6.571E-11,2.290E-12,2.295E-12,,tbabs * (pegpwrlw + bbody),chi
 00000031222028,59815.4840,0.61645,decay,HS,3.375E-11,1.32E-12,1.32E-12,,tbabs * (pegpwrlw + bbody),chi
-
+00000031222028,60525.5190,0.01053,rise,HS,1.686E-09,1.10E-11,1.09E-11,,,
+00000031222029,60532.2780,0.01063,decay,HS,7.491E-10,6.76E-12,6.78E-12,,,
+00000031222030,60539.3193,0.00971,decay,HS,1.094E-10,4.90E-12,4.89E-12,,,
 
 ## RADIO_DATA
 # blockID, band, t_radio, dt_radio, Rphase, Rstate, Fr, Fr_unc, Fr_uplim, local_rms, alpha, alpha_unc
@@ -56,3 +54,5 @@ NS,354.12,-4.192, [],8.0, "(""uniform"", 1, 10)", 1.0-10.0, [https://ui.adsabs.h
 1660404079,L,59804.66341,0.01042,decay,HS,,,0.093,20.663,,
 1661015807,L,59811.75657,0.01042,decay,HS,,,0.051,18.485,,
 1661613139,L,59818.65713,0.01042,decay,HS,,,0.113,20.681,,
+166,L,60512.67545,0.01042,,HS,0.096,0.020,,,,
+166,L,60527.67545,0.01042,,HS,0.085,0.020,,,,

@@ -17,6 +17,13 @@ def get_utc(mjd):
     print(f"MJD {mjd}  -->  UTC {utc_datetime}")
 
 
+def get_mjd(utc):
+    t = Time(utc, format='isot', scale='utc')
+    mjd = t.mjd
+    print(f"UTC {utc}  -->  MJD {mjd}")
+    return mjd
+
+
 ##############################################################################################################
 ## HELPERS: FLUX/LUMINOSITY CONVERSION FUNCTIONS
 

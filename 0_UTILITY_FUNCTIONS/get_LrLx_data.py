@@ -54,8 +54,8 @@ def pair_obs_alg(radio_df, xray_df, dt_mjd=1, weighted_ave = True, verbose=True)
     unpaired_radio_dates = []
 
     if verbose:
-        print('{:<20s}{:<20s}{:<20s}{:<10s}{:<30s}{:<30s}{:<30s}{:<15s}{:<15s}{:<15s}'.format(
-            "t_radio", "Fr [mJy]", "Fr_unc [mJy]", "#xray", "Mean Fx [erg/cm^2/s]", "Fx_unc_l[erg/cm^2/s]", "Fx_unc_u[erg/cm^2/s]", "Fr_uplim_bool", "Fx_uplim_bool", "state"))
+        print('{:<20s}{:<20s}{:<20s}{:<10s}{:<30s}{:<30s}{:<30s}{:<30s}{:<15s}{:<15s}{:<15s}'.format(
+            "t_radio", "Fr [mJy]", "Fr_unc [mJy]", "#xray",  "t_diff", "Mean Fx [erg/cm^2/s]", "Fx_unc_l[erg/cm^2/s]", "Fx_unc_u[erg/cm^2/s]", "Fr_uplim_bool", "Fx_uplim_bool", "state"))
     
     for i, t in enumerate(radio_MJDs):
         
@@ -112,6 +112,9 @@ def pair_obs_alg(radio_df, xray_df, dt_mjd=1, weighted_ave = True, verbose=True)
             abs(xray_MJDs_all[-1] - t)
             )
 
+            dt_ar = abs(xray_MJDs_all - t)
+            dt_ar = np.array2string(dt_ar, precision=3)
+
             paired_data.append({
                 "name": source_name,
                 "t": t,
@@ -127,8 +130,8 @@ def pair_obs_alg(radio_df, xray_df, dt_mjd=1, weighted_ave = True, verbose=True)
             
 
             if verbose:
-                print('{:<20.9f}{:<20.5f}{:<20.5f}{:<10d}{:<30.5e}{:<30.5e}{:<30.5e}{:<15s}{:<15s}{:<15s}'.format(
-                    t, Fr[i], Fr_unc[i], nx, Fx_av, Fx_unc_l_av, Fx_unc_u_av, str(uplims_radio[i]), str(xray_uplim), str(radio_states[i])))
+                print('{:<20.9f}{:<20.5f}{:<20.5f}{:<10d}{:<30s}{:<30.5e}{:<30.5e}{:<30.5e}{:<15s}{:<15s}{:<15s}'.format(
+                    t, Fr[i], Fr_unc[i], nx, dt_ar, Fx_av, Fx_unc_l_av, Fx_unc_u_av, str(uplims_radio[i]), str(xray_uplim), str(radio_states[i])))
             
         else:
             unpaired_radio_dates.append(t)
@@ -207,6 +210,7 @@ def make_paired_Lr_Lx_df(radio_data, xray_data, source_metadata, dt_days = 1,  d
 # If we opt to do the interpolation, then this is done instead of pairing -- i.e. the interpolation is done for all the data points, even if they could be paired
 def make_interpolated_Lr_Lx_df(radio_df, xray_df, source_metadata, d_kpc=None, nu_GHz=1.28, interp_method = "akima", save=True, plotly=False, dt1=3.0, dt2=10.0 , verbose=True):
 
+
     # Note at this stage, the dataframes are processed and sorted
     # Get the data
     radio_dates = radio_df["t_radio"].to_numpy()
@@ -220,7 +224,7 @@ def make_interpolated_Lr_Lx_df(radio_df, xray_df, source_metadata, d_kpc=None, n
     ## Interpolate the X-ray data onto the radio dates
     # Returns flux and uncertainty for every radio date, and NaN if invalid -- in linear space
     if interp_method=="akima": flux, flux_unc_l, flux_unc_u, flux_uplim_bool = interp_data_scipy_MC(xray_dates, xray_flux, xray_flux_unc_l, xray_flux_unc_u, xray_uplims, radio_dates, plotly=plotly, dt1=dt1, dt2=dt2, source_name=source_name, verbose=verbose, plot=verbose)
-    elif interp_method=="linear": flux, flux_unc_l, flux_unc_u, flux_uplim_bool = manual_linear_interpolation(xray_dates, xray_flux, xray_flux_unc_l, xray_flux_unc_u, xray_uplims, radio_dates, verbose=verbose, plot=verbose)
+    elif interp_method=="linear": flux, flux_unc_l, flux_unc_u, flux_uplim_bool = manual_linear_interpolation(xray_dates, xray_flux, xray_flux_unc_l, xray_flux_unc_u, xray_uplims, radio_dates, verbose=verbose, plot=verbose, dt1=dt1, dt2=dt2, source_name=source_name)
     
     ## The algorithm above excluded "bad" interpolated points by putting NaN in this position
     mask = ~np.isnan(flux)
@@ -274,7 +278,7 @@ def make_interpolated_Lr_Lx_df(radio_df, xray_df, source_metadata, d_kpc=None, n
         if not os.path.exists(dir):
             os.makedirs(dir)
         source_name = source_metadata["name"][0]
-        paired_data.to_csv(dir+source_name+"_Lr_Lx_interp.csv", index=False)
+        paired_data.to_csv(dir+source_name+f"_Lr_Lx_interp_{interp_method}.csv", index=False)
 
     return paired_data
 
@@ -282,7 +286,7 @@ def make_interpolated_Lr_Lx_df(radio_df, xray_df, source_metadata, d_kpc=None, n
 ##############################################################################################################
 ## RUNNER TO GET THE LRLX DATA FOR ALL SOURCES
 
-def get_all_LrLx_data(names = None, interp=False, rerun = True, save=False):
+def get_all_LrLx_data(names = None, interp=False, rerun = True, save=False, interp_method = "akima"):
     """
     Use names = ["...", "..."] if we do not want to include all the sources.
     """
@@ -296,6 +300,11 @@ def get_all_LrLx_data(names = None, interp=False, rerun = True, save=False):
             name = p.stem
             names.append(name)
 
+    # Remove Vela X-1 since this is a HMXB
+    names = np.asarray(names)
+    names = names[names != "Vela X-1"]
+
+
     print("Source names: ", names)
 
     # Initialise to hold all data
@@ -307,11 +316,11 @@ def get_all_LrLx_data(names = None, interp=False, rerun = True, save=False):
         if rerun: # rerun the pairing/interpolation
             source_df, obs_df, radio_df, xray_df = read_data(f"../DATA/{name}.txt", verbose=False)
             if interp==False: data = make_paired_Lr_Lx_df(radio_df, xray_df, source_df, save=True, verbose=False)
-            else: data = make_interpolated_Lr_Lx_df(radio_df, xray_df, source_df, save = True, verbose=False)
+            else: data = make_interpolated_Lr_Lx_df(radio_df, xray_df, source_df, save = True, verbose=False, interp_method=interp_method)
    
         else: # use the saved pairing/interpolation results
             try:
-                if interp: data = pd.read_csv(f'../DATA/INTERPOLATED/{name}_Lr_Lx_interp.csv')
+                if interp: data = pd.read_csv(f'../DATA/INTERPOLATED/{name}_Lr_Lx_interp_{interp_method}.csv')
                 else: data = pd.read_csv(f'../DATA/PAIRED/{name}_paired_Lr_Lx.csv')
             except: 
                 print(f"{name}: No saved LrLx data")
@@ -342,7 +351,7 @@ def get_all_LrLx_data(names = None, interp=False, rerun = True, save=False):
             ]
 
             # Write to a text file
-            if interp: name = f'../DATA/INTERPOLATED/interpolated_lrlx.txt'
+            if interp: name = f'../DATA/INTERPOLATED/interpolated_{interp_method}_lrlx.txt' 
             else: name = f'../DATA/PAIRED/paired_lrlx.txt'
             with open(name, 'w') as f:
                 f.write(','.join(columns_to_write) + '\n')
@@ -403,6 +412,8 @@ def get_data_arrays(names, interp=True, rerun=False, save=False, incl_Fr_uplims=
     print("lx0: ", lx0)
     print()
 
+    print(gx_339_filtered)
+
     
     # Important: The Lx upper limits have been excluded, as linmix does not have the functionality to fit these
     # This only includes HS/QS data points
@@ -429,10 +440,12 @@ def get_data_arrays(names, interp=True, rerun=False, save=False, incl_Fr_uplims=
     unique_D_prob = unique_sources["D_prob"].to_numpy()
 
     if gx_339_filtered:
-        t0 = 58964
-        t1 = 59083
-        mask_excl = (source_names=="GX 339-4") & ( (lx <= 2.7e34) | ( (t>=t0) & (t<=t1) ) )
-        lr0, lx0, lr, dlr, delta_radio, lx, dlx_l, dlx_u, delta_xrays, source_names, unique_names, unique_D, unique_D_prob, t = lr0, lx0, lr[~mask_excl], dlr[~mask_excl], delta_radio[~mask_excl], lx[~mask_excl], dlx_l[~mask_excl], dlx_u[~mask_excl], delta_xrays[~mask_excl], source_names[~mask_excl], unique_names, unique_D, unique_D_prob, t[~mask_excl]
+        #mask = (source_names=="GX 339-4") & ( ((t < 58956) | (t > 59080)) & (lx > 2.7e34) & ((t < 59496) | (t >= 59505)) )
+        #print(f"Number of GX 339-4 data points included: {sum(mask)}")
+        mask_to_excl = (source_names=="GX 339-4") & ( ((t >= 58956) & (t <= 59080)) | ((t >= 59496) & (t < 59505)) | (lx <= 2.7e34) )
+        mask_all_gx339 = (source_names=="GX 339-4")
+        print(f"Number of GX 339-4 data points: {sum(mask_all_gx339) - sum(mask_to_excl)}")
+        lr0, lx0, lr, dlr, delta_radio, lx, dlx_l, dlx_u, delta_xrays, source_names, unique_names, unique_D, unique_D_prob, t = lr0, lx0, lr[~mask_to_excl], dlr[~mask_to_excl], delta_radio[~mask_to_excl], lx[~mask_to_excl], dlx_l[~mask_to_excl], dlx_u[~mask_to_excl], delta_xrays[~mask_to_excl], source_names[~mask_to_excl], unique_names, unique_D, unique_D_prob, t[~mask_to_excl]
     
 
     return lr0, lx0, lr, dlr, delta_radio, lx, dlx_l, dlx_u, delta_xrays, source_names, unique_names, unique_D, unique_D_prob, t

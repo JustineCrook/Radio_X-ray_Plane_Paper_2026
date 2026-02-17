@@ -206,7 +206,7 @@ In other words: d_corr  = 2*log(Di/D)
 """
 
 
-def run_mcmc_iteration(j, x, y, dx, dy, delta, K, dir, seed, silence=True, xycov=None,  min_iter=5000):
+def run_mcmc_iteration(j, x, y, dx, dy, delta, K, dir, seed, silence=True, xycov=None,  min_iter=5000, max_iter=10000):
     """
     - j is the iteration number
 
@@ -214,12 +214,14 @@ def run_mcmc_iteration(j, x, y, dx, dy, delta, K, dir, seed, silence=True, xycov
     After convergence is reached, the second halves of all chains are concatenated and stored in the .chain attribute as a numpy recarray.
     """
 
+    if not silence: print(f"Running MCMC iteration {j} with min_iter={min_iter} and max_iter={max_iter}")
+
     ## For reproducibility
     np.random.seed(seed)
 
     ## Run the MCMC
     lm = linmix.LinMix(x=x, y=y, xsig=dx, ysig=dy, delta=delta, K=K, parallelize=False, seed=seed)
-    lm.run_mcmc(miniter=min_iter,maxiter=100000,silent=silence)
+    lm.run_mcmc(miniter=min_iter,maxiter=max_iter,silent=silence) 
 
     if not silence: 
         # linmix runs nchains = 4 chains, but discards the first half of samples from each chain
@@ -258,7 +260,7 @@ def run_mcmc_iteration(j, x, y, dx, dy, delta, K, dir, seed, silence=True, xycov
 ## RUN LINMIX FOR N_RUNS ITERATIONS WITH DISTANCE CORRECTIONS
 
 
-def run_linmix(N_runs=1, K=3, seed=42, parallel=True, min_iter=5000,
+def run_linmix(N_runs=1, K=3, seed=42, parallel=True, min_iter=5000, max_iter=7000,
                names = None, interp=False, type_source=None, include_Fr_uplims=True,
                verbose= False, gx_339_filtered=False):
     """
@@ -272,7 +274,7 @@ def run_linmix(N_runs=1, K=3, seed=42, parallel=True, min_iter=5000,
     ## GET THE DATA
     # Important: The Lx upper limits have been excluded, as linmix does not have the functionality to fit these
     # Get the luminosity (results using the best distance estimates)
-    lr0, lx0, lr, dlr, delta_radio, lx, dlx_l, dlx_u, delta_xrays, source_names, unique_names, unique_D, unique_D_prob, t = get_data_arrays(names = names, interp=interp, rerun = False, save=False, incl_Fr_uplims=include_Fr_uplims, type_source=type_source)
+    lr0, lx0, lr, dlr, delta_radio, lx, dlx_l, dlx_u, delta_xrays, source_names, unique_names, unique_D, unique_D_prob, t = get_data_arrays(names = names, interp=interp, rerun = False, save=False, incl_Fr_uplims=include_Fr_uplims, type_source=type_source, gx_339_filtered=gx_339_filtered)
     delta = delta_radio.astype(int) # Convert boolean to int (1 for detection, 0 for upper limit)
 
     
@@ -299,21 +301,6 @@ def run_linmix(N_runs=1, K=3, seed=42, parallel=True, min_iter=5000,
     log_dlr_l_scaled = np.log10(lr / (lr - dlr))
     log_dlr_u_scaled = np.log10( ( lr + dlr) / lr )
     log_dlr_scaled = np.maximum(log_dlr_l_scaled , log_dlr_u_scaled )
-
-
-    ##############################
-
-    # If filtering for GX 339-4 region of interest
-    if gx_339_filtered:
-        t0 = 58964
-        t1 = 59083
-        mask_excl = (source_names=="GX 339-4") & ( (lx <= 2.7e34) | ( (t>=t0) & (t<=t1) ) )
-        log_lx_scaled = log_lx_scaled[~mask_excl]
-        log_lr_scaled = log_lr_scaled[~mask_excl]
-        log_dlx_scaled = log_dlx_scaled[~mask_excl]
-        log_dlr_scaled = log_dlr_scaled[~mask_excl]
-        delta = delta[~mask_excl]
-        source_names = source_names[~mask_excl]
 
 
     ##############################
@@ -388,19 +375,20 @@ def run_linmix(N_runs=1, K=3, seed=42, parallel=True, min_iter=5000,
     ##############################
     ## RUN LINMIX FOR EACH ITERATION
 
-    if N_runs==1: silence=False
-    else: silence=True
+    #if N_runs<5 and parallel==False: silence=True
+    #else: silence=False
+    silence=False
 
     # Run iterations in parallel
     if parallel:
         Parallel(n_jobs=-1)(delayed(run_mcmc_iteration)(j, x = log_lx_scaled + d_corr, y = log_lr_scaled+d_corr, dx = log_dlx_scaled, dy = log_dlr_scaled, 
-                                                        delta = delta, K = K, dir= dir, seed=seed, silence=silence, min_iter= min_iter) for j, d_corr in enumerate(tqdm(d_corr_all)))
+                                                        delta = delta, K = K, dir= dir, seed=seed, silence=silence, min_iter= min_iter, max_iter=max_iter) for j, d_corr in enumerate(tqdm(d_corr_all)))
     
     # Run iterations sequentially
     else: 
         for j, d_corr in enumerate(d_corr_all):
             run_mcmc_iteration(j, x = log_lx_scaled + d_corr, y = log_lr_scaled+d_corr, dx = log_dlx_scaled, dy = log_dlr_scaled, 
-                               delta = delta, K = K, dir= dir, seed=seed, silence=silence, min_iter= min_iter)
+                               delta = delta, K = K, dir= dir, seed=seed, silence=silence, min_iter= min_iter, max_iter=max_iter)
 
 
 
@@ -410,7 +398,7 @@ def run_linmix(N_runs=1, K=3, seed=42, parallel=True, min_iter=5000,
 ## GET THE LINMIX RESULTS AFTER RUNNING
 
 
-def show_and_plot_results(dir, ax, lr0, lx0, colour, colour_line, show_alt_uncertainty_methods=False, best_fit_fmt = '-', plot_unc= True, best_fit_legend_only_beta=False):
+def show_and_plot_results(N_runs,dir, ax, lr0, lx0, colour, colour_line, show_alt_uncertainty_methods=False, best_fit_fmt = '-', plot_unc= True, best_fit_legend_only_beta=False, zorder=None):
     """
     NOTES:
     y = alpha + beta * x_plot = log(lr/lr0) .... log space linreg results
@@ -434,12 +422,15 @@ def show_and_plot_results(dir, ax, lr0, lx0, colour, colour_line, show_alt_uncer
     # These arrays have shape N_runs*n_chains
     all_alphas, all_betas, all_sigmas, = [], [], []
     all_summary_results = []
-    N_runs = len(os.listdir(dir)) // 4  # each run has 4 files
+    #N_runs = len(os.listdir(dir)) // 4  # each run has 4 files
     for i in range(N_runs):
-        all_alphas.append(np.loadtxt(f'{dir}/alphas_{i}.txt'))
-        all_betas.append(np.loadtxt(f'{dir}/betas_{i}.txt'))
-        all_sigmas.append(np.loadtxt(f'{dir}/sigmas_{i}.txt'))
-        all_summary_results.append(np.loadtxt(f'{dir}/summary_results_{i}.txt'))
+        try:
+            all_alphas.append(np.loadtxt(f'{dir}/alphas_{i}.txt'))
+            all_betas.append(np.loadtxt(f'{dir}/betas_{i}.txt'))
+            all_sigmas.append(np.loadtxt(f'{dir}/sigmas_{i}.txt'))
+            all_summary_results.append(np.loadtxt(f'{dir}/summary_results_{i}.txt'))
+        except: # run did not converge
+            pass
     # Create single arrays for all runs (length N_runs*n_chains)
     all_alphas = np.concatenate(all_alphas)
     all_betas = np.concatenate(all_betas)
@@ -452,7 +443,8 @@ def show_and_plot_results(dir, ax, lr0, lx0, colour, colour_line, show_alt_uncer
     # The following takes the first, second, third etc. elements from each inner array and puts these into their corresponding separate arrays
     alpha_16,  alpha_50 , alpha_84 , alpha_mean , beta_10 ,beta_16 ,beta_50 , beta_84 , beta_90, beta_mean, sigma_16, sigma_50, sigma_84, sigma_mean = map(list, zip(*all_summary_results ))
     alpha_50, beta_50, sigma_50 = np.array(alpha_50), np.array(beta_50), np.array(sigma_50)
-
+    alpha_16, beta_16, sigma_16 = np.array(alpha_16), np.array(beta_16), np.array(sigma_16)
+    alpha_84, beta_84, sigma_84 = np.array(alpha_84), np.array(beta_84), np.array(sigma_84)
 
     ######################################
     ### GET PARAMETER ESTIMATES
@@ -532,6 +524,7 @@ def show_and_plot_results(dir, ax, lr0, lx0, colour, colour_line, show_alt_uncer
     ######################################
     ### PLOT THE RESULTS
 
+
     log_lx_plot = np.linspace(np.log10(min_Lx),np.log10(max_Lx),100,endpoint=True) # log Lx grid for plotting
     lx_plot = 10.0**log_lx_plot # Lx values
     x_plot = np.log10(lx_plot / lx0)  # X grid in log-space
@@ -540,23 +533,24 @@ def show_and_plot_results(dir, ax, lr0, lx0, colour, colour_line, show_alt_uncer
     ## PLOT BEST FIT
     lr_best_fit = lr0 * (10**(alpha)) * ((lx_plot/lx0)**(beta)) 
     if best_fit_legend_only_beta:
-        ax.errorbar(lx_plot, lr_best_fit, fmt=best_fit_fmt, color=colour_line, lw=2, label=r'$\beta$'+f'={beta:.3f}+{dbeta_u:.3f}/-{dbeta_l:.3f}', zorder=5)
+        ax.errorbar(lx_plot, lr_best_fit, fmt=best_fit_fmt, color=colour_line, lw=2, label=r'$\beta$'+f'={beta:.3f}+{dbeta_u:.3f}/-{dbeta_l:.3f}', zorder=zorder)
     else:
-        ax.errorbar(lx_plot, lr_best_fit, fmt=best_fit_fmt, color=colour_line, lw=2, label=r'$\beta$'+f'={beta:.3f}+{dbeta_u:.3f}/-{dbeta_l:.3f}\n'+r'$\alpha$'+f'={alpha:.3f}+{dalpha_u:.3f}/-{dalpha_l:.3f}\n'+r'$\sigma_ε$'+f'={sigma:.3f}+{dsigma_u:.3f}/-{dsigma_l:.3f}', zorder=5)
+        ax.errorbar(lx_plot, lr_best_fit, fmt=best_fit_fmt, color=colour_line, lw=2, label=r'$\beta$'+f'={beta:.3f}+{dbeta_u:.3f}/-{dbeta_l:.3f}\n'+r'$\alpha$'+f'={alpha:.3f}+{dalpha_u:.3f}/-{dalpha_l:.3f}\n'+r'$\sigma_ε$'+f'={sigma:.3f}+{dsigma_u:.3f}/-{dsigma_l:.3f}', zorder=zorder)
     
 
     ## PLOT UNCERTAINTIES
 
     if plot_unc:
-        ## Get all the results (using all posterior samples; i.e. N_runs*n_chains samples)
-        y = all_alphas[:, None] + all_betas[:, None] * x_plot[None, :] # y has shape (n,m)
+        ## Get all the results (using all posterior samples; i.e. n=N_runs*n_chains samples)
+        # all_alphas has shape (n,1) and x_plot has shape (m,1)
+        y = all_alphas[:, None] + all_betas[:, None] * x_plot[None, :] # y has shape (n,m) 
         y16, y50, y84 = np.percentile(y, [16, 50, 84], axis=0) # each has shape (m,) 
         lr_plot_16 = lr0 * 10**y16
         lr_plot_50 = lr0 * 10**y50
         lr_plot_84 = lr0 * 10**y84
         # Add posterior predictive band (includes ε ~ N(0, σ^2) in dex) 
         rng = np.random.default_rng(123)
-        eps = rng.normal(0.0, all_sigmas[:, None], size=(all_alphas.size, x_plot.size))  # shape: (n, m)
+        eps = rng.normal(0.0, all_sigmas[:, None], size=(all_alphas.size, x_plot.size))  # shape: (n, m)... same as eps = rng.normal(0, 1.0, size=(n,m)) * all_sigmas[:, None]
         y_with_scatter = y + eps
         y_with_scatter_16, y_with_scatter_50, y_with_scatter_84 = np.percentile(y_with_scatter, [16, 50, 84], axis=0)
         lr_with_scatter_plot_16 = lr0 * 10**y_with_scatter_16
@@ -568,10 +562,11 @@ def show_and_plot_results(dir, ax, lr0, lx0, colour, colour_line, show_alt_uncer
         ax.plot(lx_plot, lr_plot_84, '--', color=colour_line, lw=1, zorder=6)
         ax.fill_between(lx_plot, lr_plot_16, lr_plot_84, facecolor= colour_line, alpha=0.07)
         # Uncertainty band with scatter
-        ax.fill_between(lx_plot, lr_with_scatter_plot_16, lr_with_scatter_plot_84, alpha=0.07, facecolor=colour_line) # , label='68% band (predictive)'
+        ax.fill_between(lx_plot, lr_with_scatter_plot_16, lr_with_scatter_plot_84, alpha=0.07, facecolor=colour_line) # , label='68% band (predictive)' # alpha=0.07
 
 
     if show_alt_uncertainty_methods:
+        print("Showing alternative uncertainty method:")
 
         ## ALTERNATIVE: Jakob's method
         # The four combinations of the two 1-sigma limits on slope and normalisations
@@ -590,25 +585,29 @@ def show_and_plot_results(dir, ax, lr0, lx0, colour, colour_line, show_alt_uncer
         ax.fill_between(lx_plot, minline, maxline, facecolor='purple', alpha=0.07)
 
 
-        ## ALTERNATIVE: Plot the percentiles of the median results (length N_runs)
-        y = alpha_50[:, None] + beta_50[:, None]*x_plot[None, :]
-        lr_plot_16 = lr0* 10**(np.percentile(y, 16, axis=0))
-        lr_plot_84 = lr0* 10**(np.percentile(y, 84, axis=0))
+        ## ALTERNATIVE: Plot the percentiles of the median results (length n=N_runs) -- the uncertainty will be smaller
+        # alpha_50 has length (n,1)
+        #y = alpha_50[:, None] + beta_50[:, None]*x_plot[None, :] #  y has shape (n,m) 
+        #y16 = alpha_16[: , None] + beta_16[: , None]*x_plot[None, :]
+        #y84 = alpha_84[: , None] + beta_84[: , None]*x_plot[None, :]
+        #lr_plot_16 = lr0* 10**(np.mean(y16, axis=0))
+        #lr_plot_84 = lr0* 10**(np.mean(y84, axis=0))
         # Add scatter (using the median sigma from each run)
-        y_with_scatter_u = y + sigma_50[:, None] 
-        y_with_scatter_l = y - sigma_50[:, None] 
-        lr_with_scatter_plot_16 = lr0* 10**(np.percentile(y_with_scatter_l, 16, axis=0))
-        lr_with_scatter_plot_84 = lr0* 10**(np.percentile(y_with_scatter_u, 84, axis=0))
-        ax.plot(lx_plot, lr_plot_16, '--', color='grey', lw=1, label=f'$1$-$\sigma$ contours')
-        ax.plot(lx_plot, lr_plot_84, '--', color= 'grey', lw=1)
-        ax.fill_between(lx_plot, lr_plot_16, lr_plot_84, facecolor='grey', alpha=0.07)
-        ax.fill_between(lx_plot, lr_with_scatter_plot_16, lr_with_scatter_plot_84, facecolor='grey', hatch='///',alpha=0.05, label=f'$1$-$\sigma$ with scatter')
+        #rng = np.random.default_rng(123)
+        #y_with_scatter_u = y84 +  sigma_50[:, None]
+        #y_with_scatter_l = y16 - sigma_50[:, None]
+        #lr_with_scatter_plot_16 = lr0* 10**(np.mean(y_with_scatter_l, axis=0))
+        #lr_with_scatter_plot_84 = lr0* 10**(np.mean(y_with_scatter_u, axis=0))
+        #ax.plot(lx_plot, lr_plot_16, '--', color='black', lw=1, label=f'$1$-$\sigma$ contours')
+        #ax.plot(lx_plot, lr_plot_84, '--', color= 'black', lw=1)
+        #ax.fill_between(lx_plot, lr_plot_16, lr_plot_84, facecolor='grey', alpha=0.07)
+        #ax.fill_between(lx_plot, lr_with_scatter_plot_16, lr_with_scatter_plot_84, facecolor='grey', alpha=0.15, label=f'$1$-$\sigma$ with scatter') # hatch='///',
 
 
 
 
 
-def linmix_results(N_runs =1, names = None, interp=False, type_source=None, include_Fr_uplims=True, save_name=None, show_alt_uncertainty_methods=False, gx_339_filtered=False):
+def linmix_results(N_runs =1, names = None, interp=False, type_source=None, include_Fr_uplims=True, save_name=None, show_alt_uncertainty_methods=False, gx_339_filtered=False, plot_unc=True):
     """
     Plot the results after running linmix with distance corrections -- plot all results together.
 
@@ -662,7 +661,7 @@ def linmix_results(N_runs =1, names = None, interp=False, type_source=None, incl
         bar.set_color('black')
     
 
-    show_and_plot_results(dir, ax, lr0, lx0, colour, colour_line, show_alt_uncertainty_methods)
+    show_and_plot_results(N_runs, dir, ax, lr0, lx0, colour, colour_line, show_alt_uncertainty_methods, plot_unc = plot_unc)
 
 
     ## PLOT LAYOUT
@@ -741,7 +740,7 @@ def linmix_results_BH_vs_NS(N_runs=1, interp=True, save_name="BH_vs_NS"):
     fig = plt.figure(figsize=(9,6), constrained_layout=True)
     ax = fig.add_subplot(1,1,1)
 
-    for type_source in ["BH", "NS", "NS_no_Fr_uplims"]:
+    for type_source in ["BH", "NS"]: # , "NS_no_Fr_uplims"
         
         print(type_source)
 
@@ -749,19 +748,24 @@ def linmix_results_BH_vs_NS(N_runs=1, interp=True, save_name="BH_vs_NS"):
             dir_new = dir + "_BH"
             colour = "#D40404"
             colour_line = "#a10000ff"
+            zorder = 5
         elif type_source=="NS":
             dir_new = dir + "_NS"
             colour = "#0303D6"
             colour_line = "#020286ff"
+            zorder = 10
         elif type_source=="NS_no_Fr_uplims":
             dir_new = dir + "_NS_no_Fr_uplims"
+            colour = "#0303D6"
+            colour_line = "#020286ff"
+            zorder=11
         dir_new +=f"_Nruns_{N_runs}"
         
         ## PLOT DATA
         if type_source!="NS_no_Fr_uplims":
     
             lr0, lx0, lr, dlr, delta_radio, lx, dlx_l, dlx_u, delta_xrays, source_names, unique_names, unique_D, unique_D_prob, t = get_data_arrays(names = None, interp=interp, rerun = False, save=False, incl_Fr_uplims=True, type_source=type_source)
-            plot, caps, bars = ax.errorbar(lx, lr, yerr=dlr, xerr=[dlx_l, dlx_u], fmt='o', ms=5, mec=colour, mfc=colour, uplims=~delta_radio,  xuplims=~delta_xrays, capsize=0.5, ecolor="black", elinewidth=0.4, zorder=3)
+            plot, caps, bars = ax.errorbar(lx, lr, yerr=dlr, xerr=[dlx_l, dlx_u], fmt='o', ms=5, mec=colour, mfc=colour, uplims=~delta_radio,  xuplims=~delta_xrays, capsize=0.5, ecolor="black", elinewidth=0.4, zorder=zorder)
             for cap in caps:
                 cap.set_color('black')      # Set cap color
                 cap.set_markeredgewidth(0.2)  # Set edge width
@@ -770,8 +774,9 @@ def linmix_results_BH_vs_NS(N_runs=1, interp=True, save_name="BH_vs_NS"):
                 bar.set_color('black')
     
         ## PLOT RESULTS
-        if type_source=="NS_no_Fr_uplims": show_and_plot_results(dir_new, ax, lr0, lx0, colour, colour_line, plot_unc = False, best_fit_fmt = "-.", show_alt_uncertainty_methods=False)
-        else: show_and_plot_results(dir_new, ax, lr0, lx0, colour, colour_line, plot_unc = True, best_fit_fmt = '-', show_alt_uncertainty_methods=False)
+        if type_source=="NS_no_Fr_uplims": show_and_plot_results(N_runs, dir_new, ax, lr0, lx0, colour, colour_line, plot_unc = False, best_fit_fmt = "-.", show_alt_uncertainty_methods=False, zorder=zorder)
+        else: show_and_plot_results(N_runs, dir_new, ax, lr0, lx0, colour, colour_line, plot_unc = True, best_fit_fmt = '-', show_alt_uncertainty_methods=False, zorder=zorder)
+
 
 
     ## PLOT LAYOUT

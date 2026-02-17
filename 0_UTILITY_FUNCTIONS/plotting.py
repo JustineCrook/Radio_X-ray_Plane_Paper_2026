@@ -1270,22 +1270,21 @@ def plot_Lr_Lx_plot3(paired_data, source_name= "MAXI J1348-630", save_name=None,
 
 
     # Filter GX339 to get the region of interest
-    t0 = 58964
-    t1 = 59083
+    # Previously: gx339_mask = (paired_data["name"]=="GX 339-4") & (lx > 2.7e34) & ( (t<58964) | (t>59083) ) & (lx_delta==False) & (states.isin(["HS", "QS"]))
     lx = paired_data["Lx"]
     t = paired_data["t"]    
     lr = paired_data["Lr"]
     lx_delta = paired_data["Fx_uplim_bool"]
     lr_delta = paired_data["Fr_uplim_bool"]
     states = paired_data["state"]
-    gx339_mask = (paired_data["name"]=="GX 339-4") & (lx > 2.7e34) & ( (t<t0) | (t>t1) ) & (lx_delta==False) & (states.isin(["HS", "QS"]))
+    gx339_mask = (paired_data["name"]=="GX 339-4") & ( ((t < 58956) | (t > 59080)) & (lx > 2.7e34) & ((t < 59496) | (t >= 59505)) ) & (lx_delta==False) & (states.isin(["HS", "QS"]))
     lr_gx339, lx_gx339,  delta_gx339 = lr[gx339_mask], lx[gx339_mask], lr_delta[gx339_mask]
     gx339_color = colours.get("GX 339-4", 'black')
     # Standard track fit parameters
-    lx0 = 5.205841778483798e+35
-    lr0 = 5.141600494192072e+28
-    alpha = 0.336
-    beta = 0.583
+    lx0 = 5.47e+35
+    lr0 = 4.54e+28
+    alpha = 0.371
+    beta = 0.588
     model_axis = np.linspace(min_Lx, max_Lx, 100) # L_X values
     if show_standard_track:
         # The best fit:
@@ -1429,6 +1428,21 @@ def plot_LrLx_comparison(df, plot_type="BH_vs_NS", add_2D_ks=True):
     pval_Lr = ks_2samp(log_y1_det, log_y2_det).pvalue
     pval_2D, D_2D = ks2d2s(log_x1_det, log_y1_det, log_x2_det, log_y2_det, extra=True)
 
+    print(f"KS test p-values: Lx={pval_Lx:.5e}, Lr={pval_Lr:.5e}, 2D={pval_2D:.5e}")
+
+    ## Calculate the harmonic mean p-value 
+    # number of combined p-values
+    k = 2.0
+    # harmonic mean p-value (equal weights)
+    p_hmp = k / (1.0 / pval_Lx + 1.0 / pval_Lr)
+    print(f"Harmonic mean p-value: {p_hmp:.5e}")
+    # Same as
+    w1 = 0.5
+    w2 = 0.5
+    p_hmp_alt = 1.0 / (w1/pval_Lx + w2/pval_Lr)
+    print(f"Harmonic mean p-value: {p_hmp_alt:.5e}")
+
+
 
     ##################
 
@@ -1492,9 +1506,9 @@ def plot_LrLx_comparison(df, plot_type="BH_vs_NS", add_2D_ks=True):
 
 
     
-    if add_2D_ks:
-        ## Add 2D KS p-value to legend
-        ax_main.text(0.98, 0.02, f"2D KS: p = {pval_2D:.2g}", transform=ax_main.transAxes, ha='right', va='bottom', fontsize=10, bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8))
+    #if add_2D_ks:
+    #    ## Add 2D KS p-value to legend
+    #    ax_main.text(0.98, 0.02, f"2D KS: p = {pval_2D:.2g}", transform=ax_main.transAxes, ha='right', va='bottom', fontsize=10, bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8))
 
 
     ## Top histogram (Lx)
@@ -1505,7 +1519,7 @@ def plot_LrLx_comparison(df, plot_type="BH_vs_NS", add_2D_ks=True):
     ax_top.set_ylabel("Density")
     if plot_type == "BH_vs_NS": left = 0.98
     elif plot_type == "HS_vs_SS": left = 0.23
-    ax_top.text(left, 0.9, rf"KS: $p$ = {pval_Lx:.2g}", transform=ax_top.transAxes, ha='right', va='top', fontsize=10, bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8))
+    #ax_top.text(left, 0.9, rf"KS: $p$ = {pval_Lx:.2g}", transform=ax_top.transAxes, ha='right', va='top', fontsize=10, bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8))
     plt.setp(ax_top.get_xticklabels(), visible=False)
 
  
@@ -1515,7 +1529,7 @@ def plot_LrLx_comparison(df, plot_type="BH_vs_NS", add_2D_ks=True):
     sns.kdeplot(y=log_y1_det, fill=True, alpha=0.2, linewidth=2, color=colour1, ax=ax_right)
     sns.kdeplot(y=log_y2_det, fill=True, alpha=0.2, linewidth=2, color=colour2, ax=ax_right)
     ax_right.set_xlabel("Density")
-    ax_right.text(0.92, 0.97, f"KS: p = {pval_Lr:.2g}", transform=ax_right.transAxes, ha='right', va='top', fontsize=10, bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8))
+    #ax_right.text(0.92, 0.97, f"KS: p = {pval_Lr:.2g}", transform=ax_right.transAxes, ha='right', va='top', fontsize=10, bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8))
     plt.setp(ax_right.get_yticklabels(), visible=False)
 
 

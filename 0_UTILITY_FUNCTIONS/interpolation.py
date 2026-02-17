@@ -130,8 +130,26 @@ dy^2 =  [ (x1 - x2 + (x - x1) ) / (x1 - x2)]**2 * dy1**2 + ((x - x1)/(x2 - x1))*
 dy^2 =  ((x - x2)/(x1 - x2)**2 * dy1**2 + ((x - x1)/(x2 - x1))**2 *dy2**2
 ... whichis the same as White 2017 eqn (15).
 """
-##TODO: Deal with case when there is only one data point.
-def manual_linear_interpolation(xray_dates, xray_flux, xray_flux_unc_l, xray_flux_unc_u, xray_uplims, radio_dates, verbose=True, plot=True):
+
+def manual_linear_interpolation(xray_dates, xray_flux, xray_flux_unc_l, xray_flux_unc_u, xray_uplims, radio_dates, verbose=True, plot=True, dt1 = 3.0, dt2 = 10.0 , source_name=""):
+
+    if len(xray_dates)==0:
+        return np.full(len(radio_dates), np.nan), np.full(len(radio_dates), np.nan), np.full(len(radio_dates), np.nan), np.zeros(len(radio_dates), dtype=bool)
+    
+    elif len(xray_dates) == 1:
+        xray_date = xray_dates[0]
+        idx_closest = np.argmin(np.abs(radio_dates - xray_date))
+        radio_date = radio_dates[idx_closest]
+        if np.abs(radio_date- xray_date)<1.0:
+            y_predict_linear, lower_linear_errors, upper_linear_errors, y_predict_uplim_bool = np.full(len(radio_dates), np.nan), np.full(len(radio_dates), np.nan), np.full(len(radio_dates), np.nan), np.zeros(len(radio_dates), dtype=bool)
+            y_predict_linear[idx_closest] = xray_flux[0]
+            lower_linear_errors[idx_closest] = xray_flux_unc_l[0]
+            upper_linear_errors[idx_closest] = xray_flux_unc_u[0]
+            y_predict_uplim_bool[idx_closest] =xray_uplims[0]
+            return y_predict_linear, lower_linear_errors, upper_linear_errors, y_predict_uplim_bool
+        else: 
+            return np.full(len(radio_dates), np.nan), np.full(len(radio_dates), np.nan), np.full(len(radio_dates), np.nan), np.full(len(radio_dates), np.nan) 
+
 
 
     # If some point are extremely close, then it messes up the interpolation (since it thinks this is a steep rise/decay). 
@@ -141,8 +159,6 @@ def manual_linear_interpolation(xray_dates, xray_flux, xray_flux_unc_l, xray_flu
 
     # x-axis values
     x = xray_dates
-    # x data for plotting:
-    x_plot = np.linspace( x[0] , x[-1] , 2*int(1*(x[-1] - x[0])) ) 
     if verbose: print("Number of plotting points: ", 2*int(1*(x[-1] - x[0])) )
     # x data for prediction 
     x_predict = radio_dates
@@ -241,8 +257,7 @@ def manual_linear_interpolation(xray_dates, xray_flux, xray_flux_unc_l, xray_flu
         
 
         # Reject the predictions that are too far away -- i.e. make them NaN
-        # This will include the extrapolated points further than 1.5 day away
-        if (time_to_nearest > 1.0 and time_to_furthest > 15) or time_to_nearest> 10:  
+        if (time_to_nearest > dt1) or (time_to_nearest > 1.0 and time_to_furthest > dt2):  
             if verbose: print(f"Rejected based on distance: radio_MJD = {radio_date}; time_to_nearest: {time_to_nearest}; time_to_furthest: {time_to_furthest}" )
             y_predict[i] = np.nan
             y_predict_err_l[i] = np.nan 
@@ -477,8 +492,6 @@ def interp_data_scipy_MC(xray_dates, xray_flux, xray_flux_unc_l, xray_flux_unc_u
         # This will include the extrapolated points further than 1.0 day away
         # Default dt1 = 10.0, dt2 = 15.0
 
-        # Workaround for now:
-        if source_name=="SAX J1808.4-3658": dt1, dt2 = 6.5, 6.5
         if (time_to_nearest > dt1) or (time_to_nearest > 1.0 and time_to_furthest > dt2):  
             if verbose: print(f"Rejected based on distance: radio_MJD = {radio_date}; time_to_nearest: {time_to_nearest}; time_to_furthest: {time_to_furthest}" )
             y_predict[i] = np.nan

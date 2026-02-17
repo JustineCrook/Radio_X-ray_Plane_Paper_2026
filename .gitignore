@@ -3,3 +3,5 @@ __pycache__/
 DATA/ORIGINAL/
 DATA/convert_format.ipynb
 5_LIN_REG/input_files/
+5_LIN_REG/MCMC_parfiles_interp*
+5_LIN_REG/MCMC_parfiles_paired*

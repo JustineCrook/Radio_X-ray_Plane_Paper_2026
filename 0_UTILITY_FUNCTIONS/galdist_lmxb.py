@@ -83,7 +83,7 @@ def get_deg(ra, dec):
     return RA, DEC
 
 
-def plot_PDF(SOURCE_RA = 265.15878, SOURCE_DEC = -27.62004, DISTANCE_LOLIM = 0, DISTANCE_HARDLIMIT= 100, sample=False , d_eval_min = 6, d_eval_max = 17):
+def plot_PDF(SOURCE_RA = 265.15878, SOURCE_DEC = -27.62004, DISTANCE_LOLIM = 1, DISTANCE_HARDLIMIT= 27, sample=False , d_eval_min = 6, d_eval_max = 17, zoom=False):
     
     # Define the target position in equatorial coordinates
     TARGET = SkyCoord(SOURCE_RA*u.deg, SOURCE_DEC*u.deg)
@@ -110,7 +110,8 @@ def plot_PDF(SOURCE_RA = 265.15878, SOURCE_DEC = -27.62004, DISTANCE_LOLIM = 0, 
     fig = plt.figure(figsize=(8, 6))
     ax = fig.add_subplot(1, 1, 1)
     ax.plot(EVAL_DIST, EVAL_PDF, color='indigo', lw=4)
-    ax.set_xlim(0, DISTANCE_HARDLIMIT)
+    if zoom:ax.set_xlim(d_eval_min, d_eval_max)
+    else: ax.set_xlim(DISTANCE_LOLIM, DISTANCE_HARDLIMIT)
     ax.set_ylim(0)
     ax.set_xlabel('Distance (kpc)', fontsize=20)
     ax.set_ylabel('Probability Density (kpc$^{-1}$)', fontsize=20)
