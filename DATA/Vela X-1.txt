@@ -3,7 +3,7 @@
 
 ## SOURCE_METADATA
 # class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
-NS HMXRB,263.3,2.9,[], 1.99, "(""gauss"",1.99, 0.13)", 1.99^{+0.13}_{-0.11}, [https://ui.adsabs.harvard.edu/abs/2021A%26A...652A..95K/abstract]
+NS_HMXRB,263.058,3.930,[https://simbad.u-strasbg.fr/simbad/sim-id?Ident=Vela+X-1], 1.99, "(""gauss"",1.99, 0.13)", 1.99^{+0.13}_{-0.11}, [https://ui.adsabs.harvard.edu/abs/2021A%26A...652A..95K/abstract]
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text

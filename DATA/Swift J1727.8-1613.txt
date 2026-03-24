@@ -3,7 +3,7 @@
 
 ## SOURCE_METADATA
 # class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
-BH,8.64,10.241, [],5.5, "('gauss',5.5,1.4)", 5.5 \pm 1.4, [https://ui.adsabs.harvard.edu/abs/2025ApJ...994..243B/abstract]
+BH,8.641,10.255, [https://simbad.harvard.edu/simbad/sim-id?Ident=Swift%20J1727.8-1613],5.5, "('gauss',5.5,1.4)", 5.5 \pm 1.4, [https://ui.adsabs.harvard.edu/abs/2025ApJ...994..243B/abstract]
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text

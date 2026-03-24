@@ -2,11 +2,11 @@
 
 ## SOURCE_METADATA
 # class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
-NS,40.12,15.5, [],6.3, "(""uniform"", 4.2, 8.4)",6.3 \pm 0.7, [https://ui.adsabs.harvard.edu/abs/2025A%26A...702A.103S/abstract]
+NS,40.123,15.502, [https://simbad.u-strasbg.fr/simbad/sim-basic?Ident=MAXI+J1807%2B132],6.3, "(""uniform"", 4.2, 8.4)",6.3 \pm 0.7, [https://ui.adsabs.harvard.edu/abs/2025A%26A...702A.103S/abstract]
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
-68, [Crook-Mansour et al. (in prep.) & ], [ &],,
+68, [Crook-Mansour et al. (in prep.) & ], [Crook-Mansour et al. (in prep.) &],,
 
 ## XRAY_DATA
 # obsID, t_xray, dt_xray, Xphase, Xstate, Fx, Fx_unc_l, Fx_unc_u, Fx_uplim, model, fit_stat

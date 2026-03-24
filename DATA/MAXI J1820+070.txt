@@ -4,7 +4,7 @@
 
 ## SOURCE_METADATA
 # class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
-BH,35.85,10.16,[https://ui.adsabs.harvard.edu/abs/2022yCat.1355....0G/abstract], 2.96, "(""gauss"", 2.96, 0.33)", 2.96 \pm 0.33, [https://ui.adsabs.harvard.edu/abs/2020MNRAS.493L..81A/abstract]
+BH,35.854,10.159,[https://simbad.u-strasbg.fr/simbad/sim-id?Ident=MAXI+J1820%2B070+], 2.96, "(""gauss"", 2.96, 0.33)", 2.96 \pm 0.33, [https://ui.adsabs.harvard.edu/abs/2020MNRAS.493L..81A/abstract]
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text

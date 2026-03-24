@@ -262,7 +262,7 @@ def run_mcmc_iteration(j, x, y, dx, dy, delta, K, dir, seed, silence=True, xycov
 
 def run_linmix(N_runs=1, K=3, seed=42, parallel=True, min_iter=5000, max_iter=7000,
                names = None, interp=False, type_source=None, include_Fr_uplims=True,
-               verbose= False, gx_339_filtered=False):
+               verbose= False, gx_339_filtered=False, add_additional_error=False):
     """
     Runner function to run linmix for N_runs iterations, applying distance corrections each time.
     The code is structured such that the first iteration is always run with the best predictions for the distances.
@@ -294,6 +294,10 @@ def run_linmix(N_runs=1, K=3, seed=42, parallel=True, min_iter=5000, max_iter=70
     log_dlx_l_scaled = np.log10(lx / (lx - dlx_l)) # = log(lx/lx0) - log( (lx - dlx_l)/ lx0 ) 
     log_dlx_u_scaled = np.log10( ( lx + dlx_u) / lx ) # = log( (lx + dlx_u)/ lx0 ) - log(lx/lx0)
     log_dlx_scaled = np.maximum(log_dlx_l_scaled , log_dlx_u_scaled )
+    if add_additional_error: 
+        print("Adding an additional error of 0.15 dex in quadrature to the x errors to see how this affects the results.")
+        log_dlx_scaled = np.sqrt(log_dlx_scaled**2 + 0.15**2) # add an additional error of 0.15 dex in quadrature to the x errors, to see how this affects the results
+        print("The x errors after adding the additional error are: ", log_dlx_scaled[:5])
 
     # y:
     lr_scaled = lr/lr0
@@ -301,7 +305,10 @@ def run_linmix(N_runs=1, K=3, seed=42, parallel=True, min_iter=5000, max_iter=70
     log_dlr_l_scaled = np.log10(lr / (lr - dlr))
     log_dlr_u_scaled = np.log10( ( lr + dlr) / lr )
     log_dlr_scaled = np.maximum(log_dlr_l_scaled , log_dlr_u_scaled )
-
+    if add_additional_error: 
+        print("Adding an additional error of 0.15 dex in quadrature to the y errors to see how this affects the results.")
+        log_dlr_scaled = np.sqrt(log_dlr_scaled**2 + 0.15**2) # add an additional error of 0.15 dex in quadrature to the y errors, to see how this affects the results
+        print("The y errors after adding the additional error are: ", log_dlr_scaled[:5])
 
     ##############################
 
@@ -533,9 +540,9 @@ def show_and_plot_results(N_runs,dir, ax, lr0, lx0, colour, colour_line, show_al
     ## PLOT BEST FIT
     lr_best_fit = lr0 * (10**(alpha)) * ((lx_plot/lx0)**(beta)) 
     if best_fit_legend_only_beta:
-        ax.errorbar(lx_plot, lr_best_fit, fmt=best_fit_fmt, color=colour_line, lw=2, label=r'$\beta$'+f'={beta:.3f}+{dbeta_u:.3f}/-{dbeta_l:.3f}', zorder=zorder)
+        ax.errorbar(lx_plot, lr_best_fit, fmt=best_fit_fmt, color=colour_line, lw=2, label=r'$\beta$'+f'={beta:.2f}+{dbeta_u:.2f}/-{dbeta_l:.2f}', zorder=zorder)
     else:
-        ax.errorbar(lx_plot, lr_best_fit, fmt=best_fit_fmt, color=colour_line, lw=2, label=r'$\beta$'+f'={beta:.3f}+{dbeta_u:.3f}/-{dbeta_l:.3f}\n'+r'$\alpha$'+f'={alpha:.3f}+{dalpha_u:.3f}/-{dalpha_l:.3f}\n'+r'$\sigma_ε$'+f'={sigma:.3f}+{dsigma_u:.3f}/-{dsigma_l:.3f}', zorder=zorder)
+        ax.errorbar(lx_plot, lr_best_fit, fmt=best_fit_fmt, color=colour_line, lw=2, label=r'$\beta$'+f'={beta:.2f}+{dbeta_u:.2f}/-{dbeta_l:.2f}\n'+r'$\alpha$'+f'={alpha:.2f}+{dalpha_u:.2f}/-{dalpha_l:.2f}\n'+r'$\sigma_ε$'+f'={sigma:.2f}+{dsigma_u:.2f}/-{dsigma_l:.2f}', zorder=zorder)
     
 
     ## PLOT UNCERTAINTIES
@@ -769,7 +776,7 @@ def linmix_results_BH_vs_NS(N_runs=1, interp=True, save_name="BH_vs_NS"):
             for cap in caps:
                 cap.set_color('black')      # Set cap color
                 cap.set_markeredgewidth(0.2)  # Set edge width
-                cap.set_markersize(3) 
+                cap.set_markersize(4) 
             for bar in bars:
                 bar.set_color('black')
     
@@ -789,21 +796,28 @@ def linmix_results_BH_vs_NS(N_runs=1, interp=True, save_name="BH_vs_NS"):
     ax.add_artist(bestfit_legend)
     
     # Create state legend (within plot) in black
-    states = ["HS", "QS"]
-    state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states] 
-    phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
-    state_legend_handles.append(phantom)
-    state_legend = ax.legend(handles=state_legend_handles, loc="upper left", bbox_to_anchor=(0.277, 0.815), bbox_transform=ax.transAxes, title="States", handlelength=0, fontsize=10) # bbox_to_anchor=(0.125, 0.578)
-    ax.add_artist(state_legend)  
+    #states = ["HS", "QS"]
+    #state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states] 
+    #phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
+    #state_legend_handles.append(phantom)
+    #state_legend = ax.legend(handles=state_legend_handles, loc="upper left", bbox_to_anchor=(0.277, 0.815), bbox_transform=ax.transAxes, title="States", handlelength=0, fontsize=10) # bbox_to_anchor=(0.125, 0.578)
+    #ax.add_artist(state_legend)  
+    states = ["HS","QS"]
+    states_str = ", ".join(states)
+    text = f"{states_str}"
+    dummy = plt.Line2D([], [], linestyle="none")
+    state_legend = ax.legend(handles=[dummy], labels=[text], loc="upper left", bbox_to_anchor=(0.25, 0.815),  bbox_transform=ax.transAxes, title="States", handlelength=0, fontsize=10) 
+    ax.add_artist(state_legend)
+
 
 
     # Create type legend (within plot) in black
-    types = ["BH & BH candidate", "NS"]
+    types = ["BH & BHC", "NS"]
     colours = ["#D40404", "#0303D6"]
     type_legend_handles = [plt.Line2D([0], [0], marker='o', color=colour, linestyle='None', markersize=6, label=type_source) for type_source, colour in zip(types,colours)] 
     phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
     type_legend_handles.append(phantom)
-    type_legend = ax.legend(handles=type_legend_handles, loc="upper left", bbox_to_anchor=(0.277, 1.0), bbox_transform=ax.transAxes, title="Types", fontsize=10)
+    type_legend = ax.legend(handles=type_legend_handles, loc="upper left", bbox_to_anchor=(0.25, 1.0), bbox_transform=ax.transAxes, title="Types", fontsize=10)
     ax.add_artist(type_legend) 
 
 
@@ -870,24 +884,24 @@ def linmix_results_individual_sources(N_runs=1, names=None , interp=True, save_n
         for cap in caps:
             cap.set_color('black')      # Set cap color
             cap.set_markeredgewidth(0.2)  # Set edge width
-            cap.set_markersize(3) 
+            cap.set_markersize(4) 
         for bar in bars:
             bar.set_color('black')
     
         ## PLOT RESULTS
-        show_and_plot_results(dir_new, ax, lr0, lx0, colour, colour_line, plot_unc = True, best_fit_fmt = '-', show_alt_uncertainty_methods=False, best_fit_legend_only_beta=True)
+        show_and_plot_results(N_runs, dir_new, ax, lr0, lx0, colour, colour_line, plot_unc = True, best_fit_fmt = '-', show_alt_uncertainty_methods=False, best_fit_legend_only_beta=True)
 
 
     ## PLOT LAYOUT
     
     # Create state legend (within plot) in black
-    states = ["HS", "QS"]
-    state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states] 
-    phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
-    state_legend_handles.append(phantom)
-    state_legend = ax.legend(handles=state_legend_handles, bbox_to_anchor=(0.13, 1.0),title="States", handlelength=0, fontsize=10)
-    ax.add_artist(state_legend)  
-
+    states = ["HS","QS"]
+    states_str = ", ".join(states)
+    text = f"{states_str}"
+    dummy = plt.Line2D([], [], linestyle="none")
+    state_legend = ax.legend(handles=[dummy], labels=[text], loc="upper left", bbox_to_anchor=(0.24, 1.0), title="States", handlelength=0, fontsize=10) # bbox_to_anchor=(0.0, 0.68)
+    ax.add_artist(state_legend)
+        
 
 
     # Create name legend (within plot) in black
@@ -906,7 +920,7 @@ def linmix_results_individual_sources(N_runs=1, names=None , interp=True, save_n
     # Ensure the 'Best fit' label is identified first
     sorted_pairs = sorted(zip(labels, handles), key=lambda x: 0 if r'$\beta$' in x[0] else 1)
     sorted_labels, sorted_handles = zip(*sorted_pairs)
-    ax.legend(sorted_handles, sorted_labels, fontsize=10, bbox_to_anchor=(0.41, 1.0), title="Best fits")     
+    ax.legend(sorted_handles, sorted_labels, fontsize=10, loc="upper left", title="Best Fits")     
 
 
     plt.xlim([min_Lx,max_Lx])

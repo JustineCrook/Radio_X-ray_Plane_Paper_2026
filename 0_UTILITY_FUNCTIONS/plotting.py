@@ -106,7 +106,7 @@ shapes_plotly = list(itertools.islice(itertools.cycle(shapes_plotly), len(colour
 
 state_markers = {"HS": "o", "SS": "x", "IMS": "s", "QS": "*", "Unclear": "P"}
 state_markersizes = {"HS": 2, "SS": 4, "IMS": 4, "QS": 6, "Unclear": 3}
-state_markersizes_large = {"HS": 4, "SS": 6, "IMS": 6, "QS": 7, "Unclear": 6}
+state_markersizes_large = {"HS": 4, "SS": 6, "IMS": 5, "QS": 7, "Unclear": 6}
 state_markersizes_extra_large = {"HS": 15, "SS": 30, "IMS": 20, "QS": 30, "Unclear": 30}
 
 
@@ -394,7 +394,7 @@ def plot_all_lightcurves(all_df, log=True, show_errorbars=False,highlight_name=N
 
             ## Plot the luminosity plot    
             y, yunc_l, yunc_u = L, L_unc_l, L_unc_u
-            plot, caps, bars = ax_lum.errorbar(dates[mask], y[mask], yerr=[yunc_l[mask], yunc_u[mask]], color=c, fmt=marker, ms=ms, uplims=uplims_bool[mask], capsize=0.5, ecolor="black", elinewidth=0.4, zorder=zorder)
+            plot, caps, bars = ax_lum.errorbar(dates[mask], y[mask], yerr=[yunc_l[mask], yunc_u[mask]], color=c, fmt=marker, ms=ms, uplims=uplims_bool[mask], capsize=1, ecolor="black", elinewidth=0.4, zorder=zorder)
             #for cap in caps:
             #    cap.set_color('black')      
             #    cap.set_markeredgewidth(0.2)  
@@ -404,7 +404,7 @@ def plot_all_lightcurves(all_df, log=True, show_errorbars=False,highlight_name=N
 
             ## Plot the flux plot
             y, yunc_l, yunc_u = F, F_unc_l, F_unc_u
-            plot, caps, bars = ax_flux.errorbar(dates[mask], y[mask], yerr=[yunc_l[mask], yunc_u[mask]], color=c, fmt=marker, ms=ms, uplims=uplims_bool[mask], capsize=0.5, ecolor="black", elinewidth=0.4, zorder=zorder)
+            plot, caps, bars = ax_flux.errorbar(dates[mask], y[mask], yerr=[yunc_l[mask], yunc_u[mask]], color=c, fmt=marker, ms=ms, uplims=uplims_bool[mask], capsize=1, ecolor="black", elinewidth=0.4, zorder=zorder)
             #for cap in caps:
             #    cap.set_color('black')      
             #    cap.set_markeredgewidth(0.2)  
@@ -427,7 +427,8 @@ def plot_all_lightcurves(all_df, log=True, show_errorbars=False,highlight_name=N
     names_text = names.copy()
     names_text = [name.replace("-", "–") for name in names]
     # For the source_class array, replace "candidateBH" with "BH"
-    source_classes = ["BH" if sc == "candidateBH" else sc for sc in source_classes]
+    source_classes = ["BHC" if sc == "candidateBH" else sc for sc in source_classes]
+
 
     for ax in [ax_lum, ax_flux]:
 
@@ -473,6 +474,8 @@ def plot_all_lightcurves(all_df, log=True, show_errorbars=False,highlight_name=N
         else: source_legend_handles = [plt.Line2D([0], [0], marker='o', color=colours.get(name, 'black'), linestyle='None', markersize=8, label=f"{name_text} ({source_class})") for (name, name_text, source_class) in zip(names, names_text, source_classes)] 
         ax[0].legend(loc="upper center", handles=source_legend_handles, bbox_to_anchor=(0.5, -0.1), ncol=int(np.ceil(len(names) / 5)), title="Sources",columnspacing=0.6,handletextpad=0.05,labelspacing=0.3,borderpad=0.3)
     
+
+
     if save_name!=None: 
         fig_lum.savefig(f"../FIGURES/{save_name}_lum.png", dpi=300,bbox_inches="tight")
         fig_flux.savefig(f"../FIGURES/{save_name}_flux.png", dpi=300,bbox_inches="tight")
@@ -640,19 +643,39 @@ def plot_luminosity_histogram_stacked(all_df, n_bins=20,  save_name=None):
 
     ## Create source type legend
     # Replace "candidateBH" with "BH candidate"
-    types = ["BH candidate" if typ == "candidateBH" else typ for typ in types]
-    type_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".",  label=typ) for typ in types]
-    phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65) 
-    type_legend_handles.append(phantom)
-    type_legend = ax.legend(handles=type_legend_handles, loc="upper left", title="Types", handlelength=0, fontsize=10)
-    ax.add_artist(type_legend)
+    #types = ["BHC" if typ == "candidateBH" else typ for typ in types]
+    #type_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".",  label=typ) for typ in types]
+    #phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65) 
+    #type_legend_handles.append(phantom)
+    #type_legend = ax.legend(handles=type_legend_handles, loc="upper left", title="Types", handlelength=0, fontsize=10)
+    #ax.add_artist(type_legend)
 
     ## Create state legend (within plot) in black
-    state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states] 
-    phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
-    state_legend_handles.append(phantom)
-    state_legend = ax.legend(handles=state_legend_handles, loc="upper left",bbox_to_anchor=(0.175, 1.0), title="States", handlelength=0, fontsize=10)
-    ax.add_artist(state_legend)  
+    #state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states] 
+    #phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
+    #state_legend_handles.append(phantom)
+    #state_legend = ax.legend(handles=state_legend_handles, loc="upper left",bbox_to_anchor=(0.175, 1.0), title="States", handlelength=0, fontsize=10)
+    #ax.add_artist(state_legend)  
+
+    ## Create combined legend
+    types = ["BHC" if typ == "candidateBH" else typ for typ in types]
+    types_str = ", ".join(types)
+    states_str = ", ".join(states)
+    sample_text = f"Types: {types_str} \nStates: {states_str}"
+    dummy = plt.Line2D([], [], linestyle="none")
+    sample_legend = ax.legend(
+        handles=[dummy],
+        labels=[sample_text],
+        loc="upper left",
+        title="Sample",
+        frameon=True,
+        handlelength=0,
+        handletextpad=0,
+        borderpad=0.4,
+        fontsize=10
+    )
+    ax.add_artist(sample_legend)
+
 
 
     ax.set_xscale('log')
@@ -1018,7 +1041,7 @@ def plot_Lr_Lx_plot1(paired_data, states=["HS", "IMS", "SS", "QS", "Unclear"], t
     for cap in caps:
         cap.set_color('black')      # Set cap color
         cap.set_markeredgewidth(0.2)  # Set edge width
-        cap.set_markersize(3) 
+        cap.set_markersize(4) 
     for bar in bars:
         bar.set_color('black')
 
@@ -1045,12 +1068,12 @@ def plot_Lr_Lx_plot1(paired_data, states=["HS", "IMS", "SS", "QS", "Unclear"], t
             )
 
     # Create source type legend
-    types = ["BH candidate" if typ == "candidateBH" else typ for typ in types]
-    type_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".",  label=typ) for typ in types]
-    phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65) 
-    type_legend_handles.append(phantom)
-    type_legend = ax.legend(handles=type_legend_handles, loc="upper left", title="Types", handlelength=0, fontsize=10)
-    ax.add_artist(type_legend)
+    #types = ["BH candidate" if typ == "candidateBH" else typ for typ in types]
+    #type_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".",  label=typ) for typ in types]
+    #phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65) 
+    #type_legend_handles.append(phantom)
+    #type_legend = ax.legend(handles=type_legend_handles, loc="upper left", title="Types", handlelength=0, fontsize=10)
+    #ax.add_artist(type_legend)
 
 
 
@@ -1059,7 +1082,7 @@ def plot_Lr_Lx_plot1(paired_data, states=["HS", "IMS", "SS", "QS", "Unclear"], t
     state_legend_handles = [plt.Line2D([0], [0], marker=marker, color='black', linestyle='None', markersize=6, label=state) for state, marker in zip(states,markers)] 
     phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
     state_legend_handles.append(phantom)
-    state_legend = ax.legend(handles=state_legend_handles, loc="upper left",bbox_to_anchor=(0.18, 1.0), title="States", fontsize=10)
+    state_legend = ax.legend(handles=state_legend_handles, loc="upper left", title="States", fontsize=10) # bbox_to_anchor=(0.18, 1.0)
     ax.add_artist(state_legend)  
 
     
@@ -1067,7 +1090,7 @@ def plot_Lr_Lx_plot1(paired_data, states=["HS", "IMS", "SS", "QS", "Unclear"], t
     names_text = unique_names.copy()
     names_text = [name.replace("-", "–") for name in unique_names]
     # For the source_class array, replace "candidateBH" with "BH"
-    source_classes = ["BH" if sc == "candidateBH" else sc for sc in source_classes]
+    source_classes = ["BHC" if sc == "candidateBH" else sc for sc in source_classes]
 
 
     # Create source legend (at bottom) with dots
@@ -1127,48 +1150,85 @@ def plot_Lr_Lx_plot2(paired_data, show_bahramian = True, save_name=None):
     for cap in caps:
         cap.set_color('black')      # Set cap color
         cap.set_markeredgewidth(0.2)  # Set edge width
-        cap.set_markersize(3) 
+        cap.set_markersize(4) 
     for bar in bars:
         bar.set_color('black')
 
 
     # Get Bahramian data
-    lr_bah, lx_bah, source_classes_bah = get_bahramian_data()
+    lr_bah, lx_bah, source_classes_bah,  uplims_lr, uplims_lx = get_bahramian_data(include_uplims=True)
     
     colours = ["#D40404", "#a10000ff", "#0303D6"]
     types = ["BH", "candidateBH", "NS"]
     for i, cls in enumerate(types):
         mask = (paired_data_filtered["class"] == cls) 
         mask_bah = (source_classes_bah == cls) 
+        mask_bah_det = mask_bah & (uplims_lr==False) & (uplims_lx==False)
+        mask_bah_uplim_lr = mask_bah & (uplims_lr==True) & (uplims_lx==False)
+        mask_bah_uplim_lx = mask_bah & (uplims_lr==False) & (uplims_lx==True)
         plt.scatter(x[mask], y[mask], color=colours[i], s=25, marker="o", zorder=3)
-        if show_bahramian: plt.scatter(lx_bah[mask_bah], lr_bah[mask_bah], color=colours[i], s=7, marker=".")
+        if show_bahramian: 
+            plt.scatter(lx_bah[mask_bah_det], lr_bah[mask_bah_det], color=colours[i], s=10, marker=".")
+            plt.scatter(lx_bah[mask_bah_uplim_lr], lr_bah[mask_bah_uplim_lr], color=colours[i], s=9, marker="v")
+            plt.scatter(lx_bah[mask_bah_uplim_lx], lr_bah[mask_bah_uplim_lx], color=colours[i], s=9, marker="<")
     
     plt.xlim([min_Lx,max_Lx])
     plt.ylim([min_Lr,max_Lr_2])
 
 
+    from matplotlib.legend_handler import HandlerTuple
+
     if show_bahramian:
-        legend_handles = [plt.Line2D([0], [0], marker=marker, color='black', linestyle='None', markersize=6, label=data_type) for data_type, marker in zip(["Our data", "Rescaled Bahramian & Rushton 2022 detections"],["o", "."])]
-        legend = ax.legend(handles=legend_handles, loc="lower right", fontsize=10)
-        ax.add_artist(legend) 
+        legend_handles = []
+
+        # First entry
+        legend_handles.append(
+            plt.Line2D([], [], marker="o", color="black", linestyle="None",
+                    markersize=6, label="Our data")
+        )
+
+        # Create three separate marker handles
+        h1 = plt.Line2D([], [], marker="o", color="black", linestyle="None", markersize=3)
+        h2 = plt.Line2D([], [], marker="<", color="black", linestyle="None", markersize=3)
+        h3 = plt.Line2D([], [], marker="v", color="black", linestyle="None", markersize=3)
+
+        # Add them as a tuple (ONE legend entry)
+        legend_handles.append((h1, h2, h3))
+
+        legend = ax.legend(
+            handles=legend_handles,
+            labels=[
+                "Our data",
+                "Rescaled Bahramian & Rushton 2022 data (no error bars):\n"
+                r"Detections, $L_X$ upper limits, $L_R$ upper limits"
+            ],
+            handler_map={tuple: HandlerTuple(ndivide=None)},
+            loc="lower right",
+            fontsize=10,
+            handlelength=2.0,
+            handletextpad=0.6
+        )
+
+        ax.add_artist(legend)
 
 
 
     # Create source type legend
-    types = ["BH candidate" if typ == "candidateBH" else typ for typ in types]
+    types = ["BHC" if typ == "candidateBH" else typ for typ in types]
     type_legend_handles = [plt.Line2D([0], [0], color=colour, linestyle='None', markersize=6, label=typ, marker="o") for typ, colour in zip(types, colours)]
-    phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65) 
+    phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 50) 
     type_legend_handles.append(phantom)
     type_legend = ax.legend(handles=type_legend_handles, loc="upper left", title="Types", fontsize=10)
     ax.add_artist(type_legend)
 
 
     # Create state legend (within plot) in black
-    state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states] 
-    phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
-    state_legend_handles.append(phantom)
-    state_legend = ax.legend(handles=state_legend_handles, loc="upper left",bbox_to_anchor=(0.22, 1.0), title="States", handlelength=0, fontsize=10)
-    ax.add_artist(state_legend)  
+    states = ["HS","QS"]
+    states_str = ", ".join(states)
+    text = f"{states_str}"
+    dummy = plt.Line2D([], [], linestyle="none")
+    state_legend = ax.legend(handles=[dummy], labels=[text], loc="upper left", bbox_to_anchor=(0.18, 1.0), title="States", handlelength=0, fontsize=10) # bbox_to_anchor=(0.0, 0.68)
+    ax.add_artist(state_legend)
 
 
     plt.xlabel(r'1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]')
@@ -1235,7 +1295,7 @@ def plot_Lr_Lx_plot3(paired_data, source_name= "MAXI J1348-630", save_name=None,
     for cap in caps:
         cap.set_color('black')      # Set cap color
         cap.set_markeredgewidth(0.2)  # Set edge width
-        cap.set_markersize(3) 
+        cap.set_markersize(4) 
     for bar in bars:
         bar.set_color('black')
 
@@ -1244,28 +1304,41 @@ def plot_Lr_Lx_plot3(paired_data, source_name= "MAXI J1348-630", save_name=None,
 
 
     # Create source type legend
-    types = ["BH candidate" if typ == "candidateBH" else typ for typ in types]
-    type_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".",  label=typ) for typ in types]
-    phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65) 
-    type_legend_handles.append(phantom)
-    type_legend = ax.legend(handles=type_legend_handles, loc="upper left", title="Types", handlelength=0, fontsize=10)
-    ax.add_artist(type_legend)
+    #types = ["BH candidate" if typ == "candidateBH" else typ for typ in types]
+    #type_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".",  label=typ) for typ in types]
+    #phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65) 
+    #type_legend_handles.append(phantom)
+    #type_legend = ax.legend(handles=type_legend_handles, loc="upper left", title="Types", handlelength=0, fontsize=10)
+    #ax.add_artist(type_legend)
 
 
 
     # Create state legend (within plot) in black
-    #states = paired_data_filtered["state"].unique() 
-    #markers = [state_markers.get(state, '.') for state in states]
-    #state_legend_handles = [plt.Line2D([0], [0], marker=marker, color='black', linestyle='None', markersize=6, label=state) for state, marker in zip(states,markers)] 
+    #state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states] 
     #phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
     #state_legend_handles.append(phantom)
-    #state_legend = ax.legend(handles=state_legend_handles, loc="upper left",bbox_to_anchor=(0.18, 1.0), title="States", fontsize=10)
+    #state_legend = ax.legend(handles=state_legend_handles, loc="upper left",bbox_to_anchor=(0.18, 1.0), title="States", handlelength=0, fontsize=10)
     #ax.add_artist(state_legend)  
-    state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states] 
-    phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
-    state_legend_handles.append(phantom)
-    state_legend = ax.legend(handles=state_legend_handles, loc="upper left",bbox_to_anchor=(0.18, 1.0), title="States", handlelength=0, fontsize=10)
-    ax.add_artist(state_legend)  
+
+
+    ## Create combined legend
+    types = ["BHC" if typ == "candidateBH" else typ for typ in types]
+    types_str = ", ".join(types)
+    states_str = ", ".join(states)
+    sample_text = f"Types: {types_str} \nStates: {states_str}"
+    dummy = plt.Line2D([], [], linestyle="none")
+    sample_legend = ax.legend(
+        handles=[dummy],
+        labels=[sample_text],
+        loc="upper left",
+        title="Sample",
+        frameon=True,
+        handlelength=0,
+        handletextpad=0,
+        borderpad=0.4,
+        fontsize=10
+    )
+    ax.add_artist(sample_legend)
 
 
 
@@ -1297,8 +1370,8 @@ def plot_Lr_Lx_plot3(paired_data, source_name= "MAXI J1348-630", save_name=None,
     # Create source legend (at bottom) with dots
     ##TODO: Make surce type labelling more general
     source_name_text = source_name.replace("-", "–") 
-    if show_standard_track: legend_handles = [plt.Line2D([0], [0], marker=marker, color=c, linestyle='None', markersize=6, label=data_type) for data_type, marker, c in zip([f"{source_name_text} ({dist} kpc)",  "GX 339–4 'standard' track", "Other BHs / BH candidates"],["o", "o", "."], [colour, gx339_color, "grey"])]
-    else: legend_handles = [plt.Line2D([0], [0], marker=marker, color=c, linestyle='None', markersize=6, label=data_type) for data_type, marker, c in zip([f"{source_name_text} ({dist} kpc)", "Other BHs / BH candidates"],["o", "."], [colour, "grey"])]
+    if show_standard_track: legend_handles = [plt.Line2D([0], [0], marker=marker, color=c, linestyle='None', markersize=6, label=data_type) for data_type, marker, c in zip([f"{source_name_text} ({dist} kpc)",  "GX 339–4 'standard' track", "Other BHs / BHCs"],["o", "o", "."], [colour, gx339_color, "grey"])]
+    else: legend_handles = [plt.Line2D([0], [0], marker=marker, color=c, linestyle='None', markersize=6, label=data_type) for data_type, marker, c in zip([f"{source_name_text} ({dist} kpc)", "Other BHs / BHCs"],["o", "."], [colour, "grey"])]
     legend = ax.legend(handles=legend_handles, loc="lower right", fontsize=10)
     ax.add_artist(legend) 
 
@@ -1332,7 +1405,7 @@ def plot_Lr_Lx_plot3(paired_data, source_name= "MAXI J1348-630", save_name=None,
 ## LRLX PLOTS FOR PAPER -- BH VS NS DETECTIONS
 
 
-def plot_LrLx_comparison(df, plot_type="BH_vs_NS", add_2D_ks=True):
+def plot_LrLx_comparison(df, plot_type="BH_vs_NS"):
 
     if plot_type not in ["BH_vs_NS", "HS_vs_SS"]:
         print("Invalid plot type. Choose 'BH_vs_NS' or 'HS_vs_SS'.")
@@ -1355,7 +1428,7 @@ def plot_LrLx_comparison(df, plot_type="BH_vs_NS", add_2D_ks=True):
         colour2= colour_BH
 
         label1 = "NS"
-        label2 = "BH & BH candidate"
+        label2 = "BH & BHC"
 
 
     elif plot_type == "HS_vs_SS":
@@ -1480,25 +1553,27 @@ def plot_LrLx_comparison(df, plot_type="BH_vs_NS", add_2D_ks=True):
 
 
     if plot_type == "BH_vs_NS":
+
         ## Create state legend (within plot) in black
         states = ["HS","QS"]
-        state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states] 
-        phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
-        state_legend_handles.append(phantom)
-        state_legend = ax_main.legend(handles=state_legend_handles, loc="upper left",bbox_to_anchor=(0.0, 0.79), title="States", handlelength=0, fontsize=10)
-        ax_main.add_artist(state_legend)  
-
+        states_str = ", ".join(states)
+        text = f"{states_str}"
+        dummy = plt.Line2D([], [], linestyle="none")
+        state_legend = ax_main.legend(handles=[dummy], labels=[text], loc="upper left", bbox_to_anchor=(0.0, 0.79), title="States", handlelength=0, fontsize=10) # bbox_to_anchor=(0.0, 0.68)
+        ax_main.add_artist(state_legend)
+        
         ## Create types legend
         ax_main.legend( fontsize=9,loc="upper left", title="Types")
 
 
     elif plot_type == "HS_vs_SS":
+
         ## Create source type legend
-        types = ["BH", "BH candidate"]
-        type_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".",  label=typ) for typ in types]
-        phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65) 
-        type_legend_handles.append(phantom)
-        type_legend = ax_main.legend(handles=type_legend_handles,loc="upper left", bbox_to_anchor=(0.0, 0.79), title="Types", handlelength=0, fontsize=10) # bbox_to_anchor=(0.0, 0.68)
+        types = ["BH", "BHC"]
+        types_str = ", ".join(types)
+        text = f"{types_str}"
+        dummy = plt.Line2D([], [], linestyle="none")
+        type_legend = ax_main.legend(handles=[dummy], labels=[text], loc="upper left", bbox_to_anchor=(0.0, 0.79), title="Types", handlelength=0, fontsize=10) # bbox_to_anchor=(0.0, 0.68)
         ax_main.add_artist(type_legend)
 
         ## Create types legend

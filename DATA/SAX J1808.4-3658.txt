@@ -4,7 +4,7 @@
 
 ## SOURCE_METADATA
 # class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
-NS,355.4217,-8.0738, [], 2.7,"(""uniform"", 2.4, 3.6)", 2.4-3.6, [https://ui.adsabs.harvard.edu/abs/2024MNRAS.535..647G/abstract]
+NS,355.385,-8.148, [https://simbad.u-strasbg.fr/simbad/sim-basic?Ident=sax+j1808.4-3658], 2.7,"(""uniform"", 2.4, 3.6)", 2.4-3.6, [https://ui.adsabs.harvard.edu/abs/2024MNRAS.535..647G/abstract]
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text

@@ -2,7 +2,7 @@
 
 ## SOURCE_METADATA
 # class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
-NS,322.11853,0.03774,[], 9.4, "(""gauss"", 9.4,1.0)",9.4^{+0.8}_{-1.0}, [https://ui.adsabs.harvard.edu/abs/2015ApJ...806..265H/abstract]
+NS,322.119,0.038,[https://simbad.cds.unistra.fr/simbad/sim-id?Ident=circinus+x-1], 9.4, "(""gauss"", 9.4,1.0)",9.4^{+0.8}_{-1.0}, [https://ui.adsabs.harvard.edu/abs/2015ApJ...806..265H/abstract]
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text

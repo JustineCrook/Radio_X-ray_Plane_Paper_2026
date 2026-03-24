@@ -178,6 +178,7 @@ def read_data(file_path, add_sys_er = True, verbose=True):
     radio_df.drop(columns=['Fr_uplim'], inplace=True)
 
 
+    ######################
     ### X-RAY DATA
 
     xray_df["Xstate"] = xray_df["Xstate"].fillna("Unclear")
@@ -292,11 +293,18 @@ def get_bahramian_data(path_to_data = "../bahramian_DATA/", include_oddsources=F
     lx_all= DATA["Lx"].to_numpy()
     source_class = DATA["Class"].to_numpy()
 
+    uplims = DATA["uplim"].to_numpy()
+    uplims_lr = uplims == "Lr"
+    uplims_lx = uplims == "Lx"
+
     # Assuming flat spectral index for Bahramian data, then the flux at the two frequencies are the same, i.e. F_1.2 = F_5. 
     # But Lr_1.2 = L_5 * (1.28/5) 
     if convert_Fr: 
         print("Converting Bahramian Lr values from 5 GHz to 1.28 GHz, assuming flat spectral index.")
         lr_all=lr_all*(1.28/5)
+
+    if include_uplims:
+        return lr_all, lx_all, source_class, uplims_lr, uplims_lx
 
     return lr_all, lx_all, source_class
 

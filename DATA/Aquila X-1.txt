@@ -1,0 +1,53 @@
+## Data from Noa and Justine
+
+
+## SOURCE_METADATA
+# class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
+NS,35.718,-04.143, [https://simbad.u-strasbg.fr/simbad/sim-id?Ident=Aql%20X-1],6, "(""gauss"", 6.0, 2.0)", 6.0 \pm 2.0, [https://ui.adsabs.harvard.edu/abs/2017MNRAS.464L..41M/abstract]
+
+## OBS_METADATA
+# xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
+68, [Crook-Mansour et al. (in prep.) & ], [Crook-Mansour et al. (in prep.) & ] , , 
+
+
+## XRAY_DATA
+# obsID, t_xray, dt_xray, Xphase, Xstate, Fx, Fx_unc_l, Fx_unc_u, Fx_uplim, model, fit_stat
+00033665136,59081.68788,0.006932435237,rise,HS,5.248E-10,9.052E-12,9.202E-12,,tbabs*pegpwrlw,
+00033665137,59082.82182,0.008668983159,rise,HS,1.200E-09,1.220E-11,1.227E-11,,tbabs*pegpwrlw,
+00033665138,59083.95482,0.008670446339,rise,HS,1.864E-09,1.499E-11,1.515E-11,,tbabs*pegpwrlw,
+00033665139,59084.95173,0.01388478545,rise,HS,1.241E-09,9.764E-12,9.776E-12,,tbabs*pegpwrlw,
+00033665140,59085.8099,0.0138862898,rise,HS,1.136E-09,8.987E-12,9.056E-12,,tbabs*pegpwrlw,
+00033665142,59086.93782,0.00989335234,rise,HS,1.400E-09,1.200E-11,1.209E-11,,tbabs*pegpwrlw,
+00033665147,59094.43927,7.68E-05,rise,IMS,5.608E-09,4.480E-10,3.648E-10,,tbabs*cflux*(diskbb+bbodyrad),
+00033665148,59097.42886,0.3930528736,rise,IMS,8.175E-09,5.438E-11,5.561E-11,,tbabs*cflux*(diskbb+bbodyrad),
+00035323053,60572.97309,0.0112594344,,HS,9.954E-10,1.602E-11,1.606E-11,,tbabs*cflux*(powerlaw+bbodyrad),
+00035323055,60578.38656,0.2010824625,,HS,2.943E-09,3.437E-11,3.384E-11,,tbabs*cflux*(powerlaw+bbodyrad),
+00035323057,60582.74629,0.008031565063,,IMS,2.092E-08,1.800E-10,1.906E-10,,tbabs*cflux*(diskbb+bbodyrad),
+00035323058,60582.97703,0.212592283,,IMS,2.142E-08,5.472E-11,5.473E-11,,tbabs*cflux*(powerlaw+bbodyrad),
+00035323059,60584.71329,0.01013071519,,SS,1.736E-08,1.171E-10,1.195E-10,,tbabs*cflux*(diskbb+bbodyrad),
+00035323060,60586.87895,0.009376437345,,SS,1.657E-08,1.382E-10,1.411E-10,,tbabs*cflux*(diskbb+bbodyrad),
+00035323061,60588.90723,0.1407034552,,SS,1.585E-08,6.511E-11,6.574E-11,,tbabs*cflux*(diskbb+bbodyrad),
+00035323062,60589.87075,0.05352781316,,SS,1.551E-08,9.701E-11,9.428E-11,,tbabs*cflux*(diskbb+bbodyrad),
+00089981001,60602.44803,0.3406582491,,SS,1.262E-08,5.828E-11,5.941E-11,,tbabs*cflux*(diskbb+bbodyrad),
+00035323063,60613.21699,0.01085950219,,IMS,6.161E-09,3.558E-11,3.578E-11,,tbabs*cflux*(powerlaw+bbodyrad),
+00035323064,60618.78248,0.01138319114,,IMS,8.039E-10,9.048E-12,9.145E-12,,tbabs*pegpwrlw,
+00035323065,60619.96139,0.009723664305,,HS,5.137E-10,1.023E-11,1.018E-11,,tbabs*cflux*(powerlaw+bbodyrad),
+
+
+
+
+## RADIO_DATA
+# blockID, band, t_radio, dt_radio, Rphase, Rstate, Fr, Fr_unc, Fr_uplim, local_rms, alpha, alpha_unc
+1598130064,L,59083.92535,0.0102,,HS,0.195,0.026,,2.00E+01,,
+1598801721,L,59091.70035,0.0102,,HS,0.171,0.033,,1.90E+01,,
+1726920975,L,60574.59674,0.0102,,HS,0.088,0.025,,1.80E+01,,
+1727610136,L,60582.56081,0.0102,,IMS,0.388,0.02,,2.30E+01,,
+1728213242,L,60589.54125,0.0102,,SS,,,7.20E-02,2.40E+01,,
+1728903370,L,60597.54484,0.0102,,SS,,,8.10E-02,2.70E+01,,
+1729424896,L,60603.56631,0.0102,,SS,,,6.90E-02,2.30E+01,,
+1729943660,L,60609.55559,0.0102,,IMS,0.13,0.027,,2.30E+01,,
+1730455875,L,60615.48348,0.0102,,IMS,0.159,0.048,,2.50E+01,,
+1731232274,L,60624.48392,0.0102,,HS,,,6.00E-02,2.00E+01,,
+1731749478,L,60630.46788,0.0102,,HS,,,6.60E-02,2.20E+01,,
+1732268475,L,60636.47518,0.0102,,HS,,,7.20E-02,2.40E+01,,
+1732953016,L,60644.39749,0.0102,,HS,,,6.75E-02,2.25E+01,,

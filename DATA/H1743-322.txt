@@ -2,7 +2,7 @@
 
 ## SOURCE_METADATA
 # class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
-candidateBH,357.25507667,-1.83296522, [],8.5, "(""gauss"", 8.5, 0.8)", 8.5 \pm 0.8, [https://ui.adsabs.harvard.edu/abs/2012ApJ...745L...7S/abstractt]
+candidateBH,357.255,-1.833, [https://simbad.u-strasbg.fr/simbad/sim-id?Ident=H+1743-322],8.5, "(""gauss"", 8.5, 0.8)", 8.5 \pm 0.8, [https://ui.adsabs.harvard.edu/abs/2012ApJ...745L...7S/abstractt]
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text

@@ -332,8 +332,7 @@ def affinity_propagation(data, transformed_data, preference, damping, logged = F
             ax.set_yscale("log", base=10)
 
 
-        # Add inset below legends (top left quadrant)
-        # bbox_to_anchor=(0.03, 0.48, 0.32, 0.32),
+        # Add inset 
         ax1 = inset_axes(ax, width="100%", height="100%", loc="lower right", bbox_to_anchor=(0.67, 0.07, 0.32, 0.32), bbox_transform=ax.transAxes, borderpad=0)
 
 
@@ -352,34 +351,55 @@ def affinity_propagation(data, transformed_data, preference, damping, logged = F
                 ax1.plot(
                     [cluster_center[0], x[0]], [cluster_center[1], x[1]], color=col
                 )
-        ax1.tick_params(labelsize=6)
-        ax1.set_xlabel("$x$", fontsize=9, labelpad=2)
-        ax1.set_ylabel("$y$", fontsize=9, labelpad=2)
+        ax1.tick_params(labelsize=8)
+        ax1.set_xlabel("$x$", fontsize=10, labelpad=2)
+        ax1.set_ylabel("$y$", fontsize=10, labelpad=2)
 
 
         # ----- Legends and Boxes -----
 
         # Legend: Types
-        source_classes = ["BH candidate" if sc == "candidateBH" else sc for sc in source_classes] # for the source_class array, replace "candidateBH" with "BH"
-        type_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=typ) for typ in source_classes]
-        phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65)  # spacing hack
-        type_legend_handles.append(phantom)
-        type_legend = ax.legend(handles=type_legend_handles, loc="upper left", title="Types", handlelength=0, fontsize=10)
-        ax.add_artist(type_legend)
+        #source_classes = ["BHC" if sc == "candidateBH" else sc for sc in source_classes] # for the source_class array, replace "candidateBH" with "BH"
+        #type_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=typ) for typ in source_classes]
+        #phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65)  # spacing hack
+        #type_legend_handles.append(phantom)
+        #type_legend = ax.legend(handles=type_legend_handles, loc="upper left", title="Types", handlelength=0, fontsize=10)
+        #ax.add_artist(type_legend)
 
         # Legend: States (positioned right of Types)
-        state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states]
-        phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)
-        state_legend_handles.append(phantom)
-        state_legend = ax.legend(handles=state_legend_handles, loc="upper left", bbox_to_anchor=(0.15, 1.0), title="States", handlelength=0, fontsize=10)
-        ax.add_artist(state_legend)
+        #state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states]
+        #phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)
+        #state_legend_handles.append(phantom)
+        #state_legend = ax.legend(handles=state_legend_handles, loc="upper left", bbox_to_anchor=(0.15, 1.0), title="States", handlelength=0, fontsize=10)
+        #ax.add_artist(state_legend)
+
+        ## Create combined legend
+        types = ["BHC" if typ == "candidateBH" else typ for typ in source_classes]
+        types_str = ", ".join(types)
+        states_str = ", ".join(states)
+        sample_text = f"Types: {types_str} \nStates: {states_str}"
+        dummy = plt.Line2D([], [], linestyle="none")
+        sample_legend = ax.legend(
+            handles=[dummy],
+            labels=[sample_text],
+            loc="upper left",
+            title="Sample",
+            frameon=True,
+            handlelength=0,
+            handletextpad=0,
+            borderpad=0.4,
+            fontsize=10
+        )
+        ax.add_artist(sample_legend)
+
+
 
         # Legend: Hyperparameters (positioned right of States)
         pref_str = "/" if preference is None else f"{preference:>4}"
         hyperparam_handle = [plt.Line2D([0], [0], color='none', linestyle='None', label=r"$\lambda$="+f"{damping:>3}\n"+r"$p$="+f"{pref_str}")]  # invisible
         #phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 1)
         #hyperparam_handle.append(phantom)
-        hyperparam_box = ax.legend(handles=hyperparam_handle,bbox_to_anchor=(0.1058, 0.815), handlelength=0, fontsize=10)
+        hyperparam_box = ax.legend(handles=hyperparam_handle,bbox_to_anchor=(0.1058, 0.86), handlelength=0, fontsize=10)
         ax.add_artist(hyperparam_box)
 
         # Axis limits
