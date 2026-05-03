@@ -358,20 +358,6 @@ def affinity_propagation(data, transformed_data, preference, damping, logged = F
 
         # ----- Legends and Boxes -----
 
-        # Legend: Types
-        #source_classes = ["BHC" if sc == "candidateBH" else sc for sc in source_classes] # for the source_class array, replace "candidateBH" with "BH"
-        #type_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=typ) for typ in source_classes]
-        #phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65)  # spacing hack
-        #type_legend_handles.append(phantom)
-        #type_legend = ax.legend(handles=type_legend_handles, loc="upper left", title="Types", handlelength=0, fontsize=10)
-        #ax.add_artist(type_legend)
-
-        # Legend: States (positioned right of Types)
-        #state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states]
-        #phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)
-        #state_legend_handles.append(phantom)
-        #state_legend = ax.legend(handles=state_legend_handles, loc="upper left", bbox_to_anchor=(0.15, 1.0), title="States", handlelength=0, fontsize=10)
-        #ax.add_artist(state_legend)
 
         ## Create combined legend
         types = ["BHC" if typ == "candidateBH" else typ for typ in source_classes]
@@ -680,9 +666,6 @@ def dbscan(data, transformed_data, eps = 0.5, min_samples=10, metric='euclidean'
 
     plt.title(f"Estimated number of clusters: {n_clusters_}")
     plt.show()
-
-
-
 
 
 

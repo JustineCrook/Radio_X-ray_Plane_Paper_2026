@@ -8,7 +8,7 @@ BH,35.854,10.159,[https://simbad.u-strasbg.fr/simbad/sim-id?Ident=MAXI+J1820%2B0
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
-68, [Bright et al. 2020 & https://ui.adsabs.harvard.edu/abs/2020NatAs...4..697B/abstract; Bright et al. 2025 & https://arxiv.org/abs/2507.11303], [Bright et al. 2020 & https://ui.adsabs.harvard.edu/abs/2020NatAs...4..697B/abstract; Bright et al. 2025 & https://arxiv.org/abs/2507.11303],  ,  
+68, [Bright et al. (2020) & https://ui.adsabs.harvard.edu/abs/2020NatAs...4..697B/abstract; Bright et al. (2025) & https://arxiv.org/abs/2507.11303], [Bright et al. (2020) & https://ui.adsabs.harvard.edu/abs/2020NatAs...4..697B/abstract; Bright et al. (2025) & https://arxiv.org/abs/2507.11303],  ,  
 
 
 

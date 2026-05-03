@@ -6,7 +6,7 @@ candidateBH,0.672,1.176,[https://simbad.u-strasbg.fr/simbad/sim-id?Ident=GRS+173
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
-68, [Crook-Mansour et al. (in prep.) & ], [Crook-Mansour et al. (in prep.) & ] ,  ,  
+68, [Crook-Mansour et al. (2026b) & ], [Crook-Mansour et al. (2026b) & ] ,  ,  
 
 
 ## XRAY_DATA

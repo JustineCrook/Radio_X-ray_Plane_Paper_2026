@@ -7,7 +7,7 @@ NS,26.389,-5.324,[https://simbad.u-strasbg.fr/simbad/sim-id?Ident=Swift%20J1858.
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
-, [], [Rhodes et al. 2022 & https://ui.adsabs.harvard.edu/abs/2022MNRAS.513.2708R/abstract], "We do not report on the Swift XRT fluxes, as these are significantly affected by absorption an scattering.", 
+, [], [Rhodes et al. (2022) & https://ui.adsabs.harvard.edu/abs/2022MNRAS.513.2708R/abstract], "We do not report on the Swift XRT fluxes, as these are significantly affected by absorption an scattering.", 
 
 
 

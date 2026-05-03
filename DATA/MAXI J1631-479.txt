@@ -3,7 +3,7 @@
 
 ## SOURCE_METADATA
 # class, l_deg, b_deg, coordinates_refs, D, D_prob, distance_distribution_text, distance_refs
-candidateBH,336.287,0.312, [https://simbad.u-strasbg.fr/simbad/sim-id?Ident=MAXI+J1631-479], 5.1, "(""uniform"", 4.5, 6.5)",$5.1^{+1.1}_{-0.4}$, [https://ui.adsabs.harvard.edu/abs/2023ApJ...944...68R/abstract]
+candidateBH,336.287,0.312, [https://simbad.u-strasbg.fr/simbad/sim-id?Ident=MAXI+J1631-479], 5.1, "(""uniform"", 4.5, 6.5)",5.1^{+1.1}_{-0.4}, [https://ui.adsabs.harvard.edu/abs/2026ApJ...998L..37Z/abstract]
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text

@@ -7,7 +7,7 @@ NS_HMXRB,263.058,3.930,[https://simbad.u-strasbg.fr/simbad/sim-id?Ident=Vela+X-1
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
-68, [Crook-Mansour et al. (in prep.) & ], [van den Eijnden et al. 2022 & https://ui.adsabs.harvard.edu/abs/2022MNRAS.510..515V/abstract ; Crook-Mansour et al. (in prep.) &] , , "The core is only detectable when stacking the three MeerKAT observations of the source." 
+68, [Crook-Mansour et al. (2026b) & ], [van den Eijnden et al. (2022) & https://ui.adsabs.harvard.edu/abs/2022MNRAS.510..515V/abstract ; Crook-Mansour et al. (2026b) &] , , "The core is only detectable when stacking the three MeerKAT observations of the source." 
 
 
 

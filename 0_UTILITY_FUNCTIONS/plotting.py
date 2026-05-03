@@ -28,12 +28,11 @@ import matplotlib.pyplot as plt
 from ndtest import ks2d2s
 from matplotlib.ticker import FixedLocator, StrMethodFormatter, AutoMinorLocator
 from datetime import timezone
+from matplotlib.legend_handler import HandlerTuple
 
 import sys
 sys.path.append(os.path.abspath("../0_UTILITY_FUNCTIONS/"))
 from get_data import *
-
-
 
 
 ## PLOT FORMATTING
@@ -62,7 +61,9 @@ mpl.rcParams['xtick.minor.size'] = 3.0
 mpl.rcParams['axes.linewidth'] = 1.5
 
 
+##############################################################################################################
 ## USEFUL VARIABLES
+
 colours_random = [ "red", "blue","green", "pink", "cyan", "yellow", "brown", "orange", "black", 
            "purple", "lime", "teal", "magenta", "gold", "navy", "olive", "maroon", "turquoise", 
            "violet", "indigo", "salmon", "coral", "khaki", "lavender", "chartreuse"]
@@ -92,7 +93,8 @@ colours = {
     'Swift J1842.5-1124': "mediumorchid",
     'Swift J1858.6-0814': "lightgreen",
     'XTE J1701-462': "purple", 
-    'Vela X-1': "#8000ff"
+    'Vela X-1': "#8000ff", 
+    'Aquila X-1': "#4a4a4a",
 }
 
 # Other colours: "darkblue", "crimson","mediumvioletred", "royalblue", 
@@ -110,6 +112,10 @@ state_markersizes_large = {"HS": 4, "SS": 6, "IMS": 5, "QS": 7, "Unclear": 6}
 state_markersizes_extra_large = {"HS": 15, "SS": 30, "IMS": 20, "QS": 30, "Unclear": 30}
 
 
+colour_NS = "#0303D6"
+colour_BH = "#D40404"
+
+# Plot ranges
 min_Lr = 1.5e25
 max_Lr = 3e32 
 max_Lr_2 = 2e31 # when doing LrLx plots (i.e. excluding the bright GRS 1915+105)
@@ -117,8 +123,27 @@ max_Lr_2 = 2e31 # when doing LrLx plots (i.e. excluding the bright GRS 1915+105)
 min_Lx = 2e30
 max_Lx = 3e39
 
-colour_NS = "#0303D6"
-colour_BH = "#D40404"
+
+
+##############################################################################################################
+## ADDITIONAL VARIABLES
+
+# Standard track fit parameters -- from notebook 4_1_linreg_GX_339.ipynb
+lr0 = 4.54e+28 #erg/s
+lx0 = 7.51e+35  #erg/s
+alpha = 0.452
+beta = 0.593
+
+
+
+##############################################################################################################
+## PLOTTING NOTES
+"""
+- mew: marker edge width
+- mfc: marker face colour
+- mec: marker edge colour
+- elinewidth: edge line width (i.e. the error bars)
+"""
 
 
 
@@ -126,26 +151,26 @@ colour_BH = "#D40404"
 ## HELPER FUNCTIONS
 
 def plot2mjd(t):
-    '''Convert from matplotlib plot date to mjd'''
+    """Convert from matplotlib plot date to mjd"""
     return Time(t, format="plot_date", scale='utc').mjd
 
 
 def mjd2plot(mjd):
-    '''Convert from mjd to matplotlib plot'''
+    """Convert from mjd to matplotlib plot"""
     return Time(mjd, format="mjd", scale='utc').plot_date
 
 def mjd2utc(mjd):
-    # Convert MJD to UTC using astropy
+    """Convert MJD to UTC using astropy"""
     t = Time(mjd, format='mjd', scale='utc')
     return t.iso  # Returns in ISO format (YYYY-MM-DD HH:MM:SS.sss)
 
 def iso2mjd(iso_dates):
-    # Convert ISO dates to MJD using astropy Time
+    """Convert ISO dates to MJD using astropy Time"""
     times = Time(iso_dates, format='isot', scale='utc')
     return times.mjd
 
 def FormatAxis(ax, start_mjd, end_mjd, interval = 60):
-    '''Function for putting UTC on top of axis'''
+    """Function for putting UTC on top of axis"""
 
     ax[0].set_xlabel('Observing Date (UTC)', fontfamily='serif')    
     ax[0].xaxis.set_major_locator(mdates.DayLocator(interval=interval))
@@ -246,9 +271,11 @@ def FormatAxis_new(ax, start_mjd, end_mjd, interval=60, round_mjd_labels=True):
 ## PLOTTING LIGHT CURVES FOR INDIVIDUAL SOURCES
 
 
-## Plotting unpaired flux data
-## This is done after the data is checked and processed
 def plot_xray_lightcurve(xray_data, start_mjd=0, end_mjd=70000, line_mjd = []):
+    """
+    Plot x-ray light curve for a single source, with options to specify date range and vertical lines at specific MJDs.
+    This function is used after the data is checked and processed
+    """
 
     xray_MJDs = xray_data["t_xray"].to_numpy()
     mask = (xray_MJDs >= start_mjd) & (xray_MJDs < end_mjd) # plot only certain range of dates
@@ -282,9 +309,11 @@ def plot_xray_lightcurve(xray_data, start_mjd=0, end_mjd=70000, line_mjd = []):
 
 
 
-## Plotting unpaired flux data
-## This is done after the data is checked and processed
 def plot_radio_lightcurve(radio_data, start_mjd=0, end_mjd=70000, line_mjd = []):
+    """
+    Plot radio light curve for a single source, with options to specify date range and vertical lines at specific MJDs.
+    This function is used after the data is checked and processed
+    """
 
     radio_MJDs = radio_data["t_radio"].to_numpy()
     mask = (radio_MJDs >= start_mjd) & (radio_MJDs < end_mjd) # plot only certain range of dates
@@ -327,28 +356,36 @@ def plot_all_lightcurves(all_df, log=True, show_errorbars=False,highlight_name=N
     """
     Plot flux and luminosity for all the data as a function of time. 
 
-    all_df are either all the radio data or all the xray data
+    Parameters
+    ----------
+    - all_df are either all the radio data or all the xray data
+    
     """
 
-    if "t_xray" in all_df.columns:
-        xrays = True
-    else: xrays = False
+    if "t_xray" in all_df.columns: xrays = True # the dataframe is X-ray data
+    else: xrays = False # the dataframe is radio data
 
+    # Set up the plots
     fig_flux, ax_flux = plt.subplots(figsize=(20, 6))
     fig_lum, ax_lum = plt.subplots(figsize=(20, 6))
 
+    # Get the source names from the dataframe
     names = np.unique(all_df["name"])
+    # Create an array to store the source classes (BH, NS, etc.) for each source, which we will use for the legend
     source_classes = []
     
+    # Loop through each source
     for i, name in enumerate(names):
 
         if name== "GX 339-4": zorder = 5
         elif name == highlight_name: zorder = 4
         else: zorder = 1
         
+        # Get the colour for this source (grey if not highlighted, otherwise the colour defined in the colours dictionary or black if not defined)
         if highlight_name!=None and name != highlight_name: c = "grey"
         else: c = colours.get(name, 'black')
 
+        # Get the data for this source
         filtered_data = all_df[all_df['name'] == name]
         source_class = filtered_data["class"].iloc[0]
         source_classes.append(source_class)
@@ -382,7 +419,7 @@ def plot_all_lightcurves(all_df, log=True, show_errorbars=False,highlight_name=N
             F_unc_u[:], F_unc_l[~uplims_bool] = 0, 0
             L_unc_u[:], L_unc_l[~uplims_bool] = 0, 0
 
-        ## Make the arrows for upper limits 1/4 of the value
+        ## Make the arrows for upper limits 1/4 of the value -- for visualisation
         F_unc_u[uplims_bool], F_unc_l[uplims_bool] = 0, F[uplims_bool]/4 
         L_unc_u[uplims_bool], L_unc_l[uplims_bool] = 0, L[uplims_bool]/4 
 
@@ -423,11 +460,15 @@ def plot_all_lightcurves(all_df, log=True, show_errorbars=False,highlight_name=N
         ax_lum.set_ylabel(r"1.28 GHz Radio Luminosity [erg s$^{-1}$]")
         ax_flux.set_ylabel("1.28 GHz Radio Flux [mJy]")
 
-    # For the names array, replace "-" with "–"
+    # For the names array, replace "-" with "–" ... except for "Aquila X-1", "Vela X-1", "Cen X-4", "Cir X-1"
     names_text = names.copy()
-    names_text = [name.replace("-", "–") for name in names]
-    # For the source_class array, replace "candidateBH" with "BH"
-    source_classes = ["BHC" if sc == "candidateBH" else sc for sc in source_classes]
+    exceptions = {"Aquila X-1", "Vela X-1", "Cen X-4", "Cir X-1"}
+    names_text = [
+        name if name in exceptions else name.replace("-", "–")
+        for name in names
+    ]
+    # For the source_class array, replace "candidateBH" with "BH" and "NS_HMXRB" with "NS HMXB"
+    source_classes = ["BHC" if sc == "candidateBH" else "NS HMXB" if sc == "NS_HMXRB" else sc for sc in source_classes]
 
 
     for ax in [ax_lum, ax_flux]:
@@ -439,7 +480,7 @@ def plot_all_lightcurves(all_df, log=True, show_errorbars=False,highlight_name=N
         else: all_mjd = all_df["t_radio"].to_numpy()
         min_mjd = np.floor(np.min(all_mjd) / 10) * 10 # to the nearest 10 rounded down
         max_mjd = np.max(all_mjd) 
-        FormatAxis_new(ax, start_mjd = min_mjd-20, end_mjd = max_mjd+20, interval = 200)
+        FormatAxis_new(ax, start_mjd = 58350, end_mjd = max_mjd+20, interval = 250) # min_mjd-20
 
         # y-axis limits
         if ax == ax_lum:
@@ -567,22 +608,24 @@ def add_arrows_to_uplims_region(ax, det_bars, uplims_bars, arrow_color="grey"):
             ]
             
             # Create and add the filled arrow polygon
-            arrow = Polygon(arrow_vertices, facecolor=arrow_color, edgecolor='black', linewidth=0.5, alpha=0.1)
+            arrow = Polygon(arrow_vertices, facecolor=arrow_color, edgecolor='black', linewidth=0.5, alpha=0.25)
             ax.add_patch(arrow)
 
 
 
 
 
-def plot_luminosity_histogram_stacked(all_df, n_bins=20,  save_name=None):
+def plot_luminosity_histogram_stacked(all_df, n_bins=20,  save_name=None, add_arrows=True):
     """
     Plot histograms of the flux/luminosity distributions. 
+
+    Parameters
+    ----------
+    - all_df are either all the radio data or all the xray data
+    
     """   
-    medium_grey = (0.55, 0.55, 0.55, 0.4) # medium grey
 
-    types = all_df["class"].unique().tolist()
-
-    if "t_xray" in all_df.columns: 
+    if "t_xray" in all_df.columns: # the dataframe is X-ray data
         xrays = True
         states = all_df["Xstate"].unique().tolist()
         uplims_bool = all_df["Fx_uplim_bool"].to_numpy()
@@ -590,7 +633,7 @@ def plot_luminosity_histogram_stacked(all_df, n_bins=20,  save_name=None):
         L = all_df["Lx"].to_numpy()
         min_x = min_Lx
         max_x = max_Lx
-    else: 
+    else: # the dataframe is radio data
         xrays = False
         states = all_df["Rstate"].unique().tolist()
         uplims_bool = all_df["Fr_uplim_bool"].to_numpy()
@@ -599,12 +642,13 @@ def plot_luminosity_histogram_stacked(all_df, n_bins=20,  save_name=None):
         min_x = min_Lr
         max_x = max_Lr
     
-
+    # Get the data needed
     F_det = F[~uplims_bool]
     F_uplim = F[uplims_bool]
     L_det = L[~uplims_bool]
     L_uplim = L[uplims_bool]
 
+    # Calculate mean and median for detections and upper limits, handling empty arrays
     mean_L_det = np.mean(L_det) if L_det.size > 0 else np.nan
     mean_L_uplim = np.mean(L_uplim) if L_uplim.size > 0 else np.nan
     median_L_det = np.median(L_det) if L_det.size > 0 else np.nan
@@ -628,6 +672,7 @@ def plot_luminosity_histogram_stacked(all_df, n_bins=20,  save_name=None):
     log_bins = np.logspace(np.log10(min_x), np.log10(max_x), n_bins + 1)
 
     ## Stack the histogram
+    medium_grey = (0.55, 0.55, 0.55, 0.4) 
     counts, bins, patches = ax.hist(
         [L_det, L_uplim],
         bins=log_bins,
@@ -638,26 +683,11 @@ def plot_luminosity_histogram_stacked(all_df, n_bins=20,  save_name=None):
     )
 
     ## Add arrows to uplims region only
-    if len(patches) > 1:  add_arrows_to_uplims_region(ax, patches[0], patches[1], arrow_color=medium_grey)
+    if len(patches) > 1 and add_arrows:  add_arrows_to_uplims_region(ax, patches[0], patches[1], arrow_color=medium_grey)
 
-
-    ## Create source type legend
-    # Replace "candidateBH" with "BH candidate"
-    #types = ["BHC" if typ == "candidateBH" else typ for typ in types]
-    #type_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".",  label=typ) for typ in types]
-    #phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65) 
-    #type_legend_handles.append(phantom)
-    #type_legend = ax.legend(handles=type_legend_handles, loc="upper left", title="Types", handlelength=0, fontsize=10)
-    #ax.add_artist(type_legend)
-
-    ## Create state legend (within plot) in black
-    #state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states] 
-    #phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
-    #state_legend_handles.append(phantom)
-    #state_legend = ax.legend(handles=state_legend_handles, loc="upper left",bbox_to_anchor=(0.175, 1.0), title="States", handlelength=0, fontsize=10)
-    #ax.add_artist(state_legend)  
 
     ## Create combined legend
+    types = all_df["class"].unique().tolist()
     types = ["BHC" if typ == "candidateBH" else typ for typ in types]
     types_str = ", ".join(types)
     states_str = ", ".join(states)
@@ -677,11 +707,11 @@ def plot_luminosity_histogram_stacked(all_df, n_bins=20,  save_name=None):
     ax.add_artist(sample_legend)
 
 
-
+    ## Set axis labels, legend, limits
     ax.set_xscale('log')
     if xrays: ax.set_xlabel(r'1–10 keV Unabsorbed Luminosity [erg s$^{-1}$]')
     else: ax.set_xlabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
-    ax.set_ylabel('Frequency')
+    ax.set_ylabel('Counts')
     ax.legend(fontsize=10, loc="upper right")
     plt.xlim([min_x, max_x])
     plt.tight_layout()
@@ -699,25 +729,35 @@ def plot_luminosity_histogram_stacked(all_df, n_bins=20,  save_name=None):
 ## PLOTTING LRLX PLANE
 
 
-## Plotting the LrLx data
-# colourby examples: "state", "source_name: MAXI J1348-630","alpha"
-# mew: marker edge width
-# mfc: marker face colour
-# mec: marker edge colour
-# elinewidth: edge line width (i.e. the error bars)
-def plot_Lr_Lx(paired_data, colourby="", states=["HS", "IMS", "SS", "QS", "Unclear"], types=["BH", "candidateBH", "NS", "NS HMXRB"], lx=np.array([]), lr=np.array([])):
 
+def plot_Lr_Lx(paired_data, colourby="", states=["HS", "IMS", "SS", "QS", "Unclear"], types=["BH", "candidateBH", "NS", "NS HMXRB"], lx=np.array([]), lr=np.array([])):
+    """
+    Plot the Lr-Lx plane with optional colouring by different categories.
+
+    Parameters
+    ----------
+    - paired_data (DataFrame): DataFrame containing the paired Lr and Lx data
+    - colourby (str, optional): Column name to colour by (e.g., "state", "source_name: MAXI J1348-630", "alpha") (default: "")
+    - states (list, optional): List of states to include in the plot (default: ["HS", "IMS", "SS", "QS", "Unclear"])
+    - types (list, optional): List of source types to include in the plot (default: ["BH", "candidateBH", "NS", "NS HMXRB"])
+    - lx (array-like, optional): Additional Lx data to plot (default: empty array) -- used for plotting rescaled Bahramian & Rushton 2022 data
+    - lr (array-like, optional): Additional Lr data to plot (default: empty array) -- used for plotting rescaled Bahramian & Rushton 2022 data
+    """
+
+    # Filter the data based on the specified states and types
     mask = paired_data["state"].isin(states) & paired_data["class"].isin(types)
 
+    # Get the necessary data for plotting, applying the mask
     x = paired_data["Lx"][mask]
     xerr =[paired_data["Lx_unc_l"][mask], paired_data["Lx_unc_u"][mask]] # x-axis errors
     y = paired_data["Lr"][mask]
     yerr = paired_data["Lr_unc"][mask] # y-axis errors
-
     # Boolean arrays to specify directional limits for each data point
     uplims = paired_data["Fr_uplim_bool"][mask]    # Upper y-limit arrow (down)
     xuplims = paired_data["Fx_uplim_bool"][mask]   # Right x-limit arrow (down)
 
+
+    # Set up the figure
     fig= plt.figure(figsize=(9,6))
     ax = fig.add_subplot(1,1,1)
 
@@ -734,7 +774,9 @@ def plot_Lr_Lx(paired_data, colourby="", states=["HS", "IMS", "SS", "QS", "Uncle
     for bar in bars:
         bar.set_color('black')
 
-    if colourby in ["class", "Xphase", "Rphase", "state", "name"]:  # discrete values
+
+    # Plot points with different colours based on the 'colourby' parameter -- discrete values
+    if colourby in ["class", "phase", "state", "name"]:  
         colourby_values = paired_data[colourby][mask].unique()
         for i, colourby_value in enumerate(colourby_values):
             colour_mask = (paired_data[colourby][mask] == colourby_value) # Create a mask for the current 'colourby' value
@@ -745,11 +787,9 @@ def plot_Lr_Lx(paired_data, colourby="", states=["HS", "IMS", "SS", "QS", "Uncle
         if colourby=="name": plt.legend(fontsize=9, loc='center left', bbox_to_anchor=(1, 0.5))
         else: plt.legend(fontsize=9)
             
-
-    elif colourby in ["alpha", "t"]: # continuous values
-
+    # Plot points with different colours based on the 'colourby' parameter -- continuous values
+    elif colourby in ["alpha", "t"]: 
         dict = {"alpha": "spectral index", "t": "time"}
-
         values = paired_data[colourby][mask]
         if values.isna().all():
             print("No data to colour by.")
@@ -762,8 +802,7 @@ def plot_Lr_Lx(paired_data, colourby="", states=["HS", "IMS", "SS", "QS", "Uncle
         cbar.set_ticklabels([f"{values_min:.2f}", f"{(values_min + values_max) / 2:.2f}", f"{values_max:.2f}"])
         cbar.ax.tick_params(labelsize=9)
 
-
-    # Code to highlight a particular source -- colourby = "name: "
+    # Code to highlight a particular source -- colourby = "source_name: "
     elif colourby.startswith("source_name"): 
         name = colourby.split(":")[1].strip()
         mask_names = (paired_data["name"][mask]==name)
@@ -784,22 +823,35 @@ def plot_Lr_Lx(paired_data, colourby="", states=["HS", "IMS", "SS", "QS", "Uncle
 
 
 
-def plot_Lr_Lx_plotly(paired_data, colourby="", states=["HS", "IMS", "SS", "QS", "unclear"], types=["BH", "candidateBH", "NS", "candidateNS"]):
 
+def plot_Lr_Lx_plotly(paired_data, colourby="", states=["HS", "IMS", "SS", "QS", "unclear"], types=["BH", "candidateBH", "NS", "candidateNS"]):
+    """
+    Plot the Lr-Lx plane using plotly, with optional colouring by different categories.
+
+    Parameters
+    ----------
+    - paired_data (DataFrame): DataFrame containing the paired Lr and Lx data
+    - colourby (str, optional): Column name to colour by (e.g., "state", "source_name: MAXI J1348-630", "alpha") (default: "")
+    - states (list, optional): List of states to include in the plot (default: ["HS", "IMS", "SS", "QS", "Unclear"])
+    - types (list, optional): List of source types to include in the plot (default: ["BH", "candidateBH", "NS", "NS HMXRB"])
+    """
+
+    # Filter the data based on the specified states and types
     mask = paired_data["state"].isin(states) & paired_data["class"].isin(types)
+    
+    # Get the necessary data for plotting, applying the mask
     x = paired_data["Lx"][mask]
     xerr_lower = paired_data["Lx_unc_l"][mask]
     xerr_upper = paired_data["Lx_unc_u"][mask]
     y = paired_data["Lr"][mask]
     yerr = paired_data["Lr_unc"][mask]
-    
     uplims = paired_data["Fr_uplim_bool"][mask]
     xuplims = paired_data["Fx_uplim_bool"][mask]
 
+    # Set up the figure
     fig = go.Figure()
 
     # Plot error bars on detections (no limits)
-    
     detections = ~uplims | ~xuplims  # Points to plot: either x detections, y detections, or both
     fig.add_trace(go.Scatter(
         x=x[detections],
@@ -950,6 +1002,10 @@ def plot_Lr_Lx_plotly(paired_data, colourby="", states=["HS", "IMS", "SS", "QS",
 
 
 def plot_time_evolution_timed(paired_data):
+    """
+    Plot the time evolution of the Lr-Lx plane, with timing proportional to the actual time intervals between observations.
+    """
+    
     data = paired_data.sort_values("t").reset_index(drop=True)
 
     fig, ax = plt.subplots(figsize=(9, 6))
@@ -1003,37 +1059,50 @@ def plot_time_evolution_timed(paired_data):
     return HTML(ani.to_jshtml())
 
 
+
 ##############################################################################################################
 ## LRLX PLOTS FOR PAPER
 
 
 def plot_Lr_Lx_plot1(paired_data, states=["HS", "IMS", "SS", "QS", "Unclear"], types=["BH", "candidateBH", "NS"], show_error_bars=False, save_name=None):
+    """
+    Plot the Lr-Lx plane with points coloured by state and different markers for different sources.
+    This creates Figure 4 in the paper.
 
+    Parameters
+    ----------
+    - paired_data (DataFrame): DataFrame containing the paired Lr and Lx data
+    - states (list, optional): List of states to include in the plot (default: ["HS", "IMS", "SS", "QS", "Unclear"])
+    - types (list, optional): List of source types to include in the plot (default: ["BH", "candidateBH", "NS"])
+    - show_error_bars (bool, optional): Whether to show error bars (default: False)
+    - save_name (str, optional): Name of the file to save the plot (default: None)
+    """
+
+    # Filter the data based on the specified states and types
     mask = paired_data["state"].isin(states) & paired_data["class"].isin(types)
 
+    # Get the necessary data for plotting, applying the mask
     paired_data_filtered = paired_data[mask].copy()
-
     x = paired_data_filtered["Lx"]
     xerr =[paired_data_filtered["Lx_unc_l"].copy(), paired_data_filtered["Lx_unc_u"].copy()] # x-axis errors
     y = paired_data_filtered["Lr"]
     yerr = paired_data_filtered["Lr_unc"].copy() # y-axis errors
-
     # Boolean arrays to specify directional limits for each data point
     uplims = paired_data_filtered["Fr_uplim_bool"]    # Upper y-limit arrow (down)
     xuplims = paired_data_filtered["Fx_uplim_bool"]  # Right x-limit arrow (down)
 
+    # If not showing error bars, set the error values to NaN for points without limits, so that no error bars are plotted for those points
     if show_error_bars==False:
         xerr[0][~xuplims] = np.nan
         xerr[1][~xuplims] = np.nan
         yerr[~uplims] = np.nan
 
-    
+    # Get the unique names in the filtered data
     unique_names = paired_data_filtered["name"].unique() 
-    # Get the indices corresponding to unique names
-    n_names = len(unique_names)
     # Get the source classes for the unique names
     source_classes = [paired_data_filtered[paired_data_filtered["name"] == name]["class"].iloc[0] for name in unique_names]
 
+    # Set up the figure
     fig= plt.figure(figsize=(9,6))
     ax = fig.add_subplot(1,1,1)
 
@@ -1049,13 +1118,21 @@ def plot_Lr_Lx_plot1(paired_data, states=["HS", "IMS", "SS", "QS", "Unclear"], t
     # Loop over classes and names
     for state in paired_data_filtered["state"].unique():
     
+        # Get the data for this state
         data = paired_data_filtered[paired_data_filtered["state"] == state]
+        
+        # The marker is determined by the state
         marker = state_markers.get(state, '.')
         size = state_markersizes_extra_large.get(state, 3)
         
+        # Loop over the sources that have data in this state
         for name in data["name"].unique():
+            
+            # Get the subset of data for this source and state
             subset = data[data["name"] == name]
             if subset.empty: continue
+
+            # The colour is determined by the source name 
             c = colours.get(name, 'black')
             cls = subset["class"].iloc[0]
             
@@ -1066,15 +1143,6 @@ def plot_Lr_Lx_plot1(paired_data, states=["HS", "IMS", "SS", "QS", "Unclear"], t
                 s=size,
                 color=c, zorder=3
             )
-
-    # Create source type legend
-    #types = ["BH candidate" if typ == "candidateBH" else typ for typ in types]
-    #type_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".",  label=typ) for typ in types]
-    #phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65) 
-    #type_legend_handles.append(phantom)
-    #type_legend = ax.legend(handles=type_legend_handles, loc="upper left", title="Types", handlelength=0, fontsize=10)
-    #ax.add_artist(type_legend)
-
 
 
     # Create state legend (within plot) in black
@@ -1088,8 +1156,12 @@ def plot_Lr_Lx_plot1(paired_data, states=["HS", "IMS", "SS", "QS", "Unclear"], t
     
     # For the names array, replace "-" with "–"
     names_text = unique_names.copy()
-    names_text = [name.replace("-", "–") for name in unique_names]
-    # For the source_class array, replace "candidateBH" with "BH"
+    exceptions = {"Aquila X-1", "Vela X-1", "Cen X-4", "Cir X-1"}
+    names_text = [
+        name if name in exceptions else name.replace("-", "–")
+        for name in unique_names
+    ]
+    # For the source_class array, replace "candidateBH" with "BHC"
     source_classes = ["BHC" if sc == "candidateBH" else sc for sc in source_classes]
 
 
@@ -1098,13 +1170,11 @@ def plot_Lr_Lx_plot1(paired_data, states=["HS", "IMS", "SS", "QS", "Unclear"], t
     ncol=4
     leg = plt.legend(loc="upper center", handles=source_legend_handles, bbox_to_anchor=(0.45, -0.12), ncol=ncol, title="Sources", fontsize=10,columnspacing=0.6,handletextpad=0.05,labelspacing=0.3,borderpad=0.3)
 
+    # Set axis labels, limits, scales
     plt.xlim([min_Lx,max_Lx])
     plt.ylim([min_Lr,max_Lr_2])
-
-    plt.xlabel(r'1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]')
-    plt.ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
-    #plt.xlabel(r'$L_X$ [erg s$^{-1}$]')
-    #plt.ylabel(r'$L_R$ [erg s$^{-1}$]')
+    plt.xlabel(r'1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]') #plt.xlabel(r'$L_X$ [erg s$^{-1}$]')
+    plt.ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]') #plt.ylabel(r'$L_R$ [erg s$^{-1}$]')
     ax.set_yscale("log", base=10)
     ax.set_xscale("log", base=10)
     ax.xaxis.set_major_locator(plt.LogLocator(base=10.0, numticks=10))
@@ -1121,28 +1191,38 @@ def plot_Lr_Lx_plot1(paired_data, states=["HS", "IMS", "SS", "QS", "Unclear"], t
 
 
     
- 
-
-# Just HS and QS
-# Colour by class
-# Versus Bahramian data
 def plot_Lr_Lx_plot2(paired_data, show_bahramian = True, save_name=None):
+    """
+    Plot the Lr-Lx plane for the HS and QS states, with points coloured by class, and optionally showing the rescaled Bahramian & Rushton 2022 data (without error bars). 
+    This creates Figure 6 in the paper.
 
+    Parameters
+    ----------
+    - paired_data (DataFrame): DataFrame containing the paired Lr and Lx data
+    - show_bahramian (bool, optional): Whether to show the rescaled Bahramian & Rushton 2022 data (default: True)
+    - save_name (str, optional): Name of the file to save the plot (default: None)
+    """
+
+    # Filter the data to include only the HS and QS states
     states = ["HS", "QS"]
     mask = paired_data["state"].isin(states) 
 
+    # Get the necessary data for plotting, applying the mask
     paired_data_filtered = paired_data[mask].copy()
-
     x = paired_data_filtered["Lx"]
     xerr =[paired_data_filtered["Lx_unc_l"], paired_data_filtered["Lx_unc_u"]] # x-axis errors
     y = paired_data_filtered["Lr"]
     yerr = paired_data_filtered["Lr_unc"] # y-axis errors
-
     # Boolean arrays to specify directional limits for each data point
     uplims = paired_data_filtered["Fr_uplim_bool"]    # Upper y-limit arrow (down)
     xuplims = paired_data_filtered["Fx_uplim_bool"]  # Right x-limit arrow (down)
 
 
+    # Get Bahramian data
+    lr_bah, lx_bah, source_classes_bah,  uplims_lr, uplims_lx = get_bahramian_data(include_uplims=True)
+
+
+    # Set up the figure
     fig= plt.figure(figsize=(9,6))
     ax = fig.add_subplot(1,1,1)
 
@@ -1155,29 +1235,25 @@ def plot_Lr_Lx_plot2(paired_data, show_bahramian = True, save_name=None):
         bar.set_color('black')
 
 
-    # Get Bahramian data
-    lr_bah, lx_bah, source_classes_bah,  uplims_lr, uplims_lx = get_bahramian_data(include_uplims=True)
-    
+    # Loop over classes and plot with different colours
     colours = ["#D40404", "#a10000ff", "#0303D6"]
     types = ["BH", "candidateBH", "NS"]
     for i, cls in enumerate(types):
         mask = (paired_data_filtered["class"] == cls) 
-        mask_bah = (source_classes_bah == cls) 
-        mask_bah_det = mask_bah & (uplims_lr==False) & (uplims_lx==False)
-        mask_bah_uplim_lr = mask_bah & (uplims_lr==True) & (uplims_lx==False)
-        mask_bah_uplim_lx = mask_bah & (uplims_lr==False) & (uplims_lx==True)
         plt.scatter(x[mask], y[mask], color=colours[i], s=25, marker="o", zorder=3)
-        if show_bahramian: 
+        
+        if show_bahramian: # there are no data points with upper limits in both Lr and Lx
+            mask_bah = (source_classes_bah == cls) 
+            mask_bah_det = mask_bah & (uplims_lr==False) & (uplims_lx==False) # detections only
+            mask_bah_uplim_lr = mask_bah & (uplims_lr==True) & (uplims_lx==False) # upper limits in Lr only
+            mask_bah_uplim_lx = mask_bah & (uplims_lr==False) & (uplims_lx==True) # upper limits in Lx only
+
             plt.scatter(lx_bah[mask_bah_det], lr_bah[mask_bah_det], color=colours[i], s=10, marker=".")
             plt.scatter(lx_bah[mask_bah_uplim_lr], lr_bah[mask_bah_uplim_lr], color=colours[i], s=9, marker="v")
             plt.scatter(lx_bah[mask_bah_uplim_lx], lr_bah[mask_bah_uplim_lx], color=colours[i], s=9, marker="<")
     
-    plt.xlim([min_Lx,max_Lx])
-    plt.ylim([min_Lr,max_Lr_2])
-
-
-    from matplotlib.legend_handler import HandlerTuple
-
+    
+    # Create data legend (at bottom) with dots and different markers for the Bahramian data
     if show_bahramian:
         legend_handles = []
 
@@ -1191,7 +1267,6 @@ def plot_Lr_Lx_plot2(paired_data, show_bahramian = True, save_name=None):
         h1 = plt.Line2D([], [], marker="o", color="black", linestyle="None", markersize=3)
         h2 = plt.Line2D([], [], marker="<", color="black", linestyle="None", markersize=3)
         h3 = plt.Line2D([], [], marker="v", color="black", linestyle="None", markersize=3)
-
         # Add them as a tuple (ONE legend entry)
         legend_handles.append((h1, h2, h3))
 
@@ -1208,9 +1283,7 @@ def plot_Lr_Lx_plot2(paired_data, show_bahramian = True, save_name=None):
             handlelength=2.0,
             handletextpad=0.6
         )
-
         ax.add_artist(legend)
-
 
 
     # Create source type legend
@@ -1231,10 +1304,11 @@ def plot_Lr_Lx_plot2(paired_data, show_bahramian = True, save_name=None):
     ax.add_artist(state_legend)
 
 
-    plt.xlabel(r'1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]')
-    plt.ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
-    #plt.xlabel(r'$L_X$ [erg s$^{-1}$]')
-    #plt.ylabel(r'$L_R$ [erg s$^{-1}$]')
+    # Set axis labels, limits, scales
+    plt.xlim([min_Lx,max_Lx])
+    plt.ylim([min_Lr,max_Lr_2])
+    plt.xlabel(r'1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]') #plt.xlabel(r'$L_X$ [erg s$^{-1}$]')
+    plt.ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]') #plt.ylabel(r'$L_R$ [erg s$^{-1}$]')
     ax.set_yscale("log", base=10)
     ax.set_xscale("log", base=10)
     ax.xaxis.set_major_locator(plt.LogLocator(base=10.0, numticks=10))
@@ -1250,47 +1324,50 @@ def plot_Lr_Lx_plot2(paired_data, show_bahramian = True, save_name=None):
 
 
 
-# Highlight a particular source
-# Show as dots all the other observations of that source type
-def plot_Lr_Lx_plot3(paired_data, source_name= "MAXI J1348-630", save_name=None, show_standard_track= False):
-
-
-    ## SOURCE DATA
+def plot_Lr_Lx_plot3(paired_data, source_name= "MAXI J1348-630", types = ["BH", "candidateBH"], save_name=None, show_standard_track= False):
+    """
+    Plot the Lr-Lx plane for the HS and QS states, highlighting a particular source and showing all other observations of that source type as grey dots.
+    This creates Figure 7 in the paper.
+    
+    Parameters
+    ----------
+    - paired_data (DataFrame): DataFrame containing the paired Lr and Lx data
+    - source_name (str, optional): Name of the source to highlight (default: "MAXI J1348-630")
+    - types (list, optional): List of source types to include in the plot (default: ["BH", "candidateBH"])
+    - save_name (str, optional): Name of the file to save the plot (default: None)
+    - show_standard_track (bool, optional): Whether to show the standard track for comparison (default: False)  
+    """
 
     states = ["HS", "QS"]
+    
+    # Get the data for the source of interest in the specified states
     mask = (paired_data["name"] == source_name) & (paired_data["state"].isin(states))
-
     paired_data_filtered = paired_data[mask].copy()
-
     x = paired_data_filtered["Lx"]
     xerr =[paired_data_filtered["Lx_unc_l"], paired_data_filtered["Lx_unc_u"]] # x-axis errors
     y = paired_data_filtered["Lr"]
     yerr = paired_data_filtered["Lr_unc"] # y-axis errors
-
-    dist = paired_data_filtered["D"].to_numpy()[0]
-
+    dist = float(paired_data_filtered["D"].to_numpy()[0])
+    print(f"Distance used for {source_name}: {dist} kpc")
     # Boolean arrays to specify directional limits for each data point
     uplims = paired_data_filtered["Fr_uplim_bool"]    # Upper y-limit arrow (down)
     xuplims = paired_data_filtered["Fx_uplim_bool"]  # Right x-limit arrow (down)
+    # Get the colour for this source
+    colour = colours.get(source_name, 'black')
 
 
-    ## OTHER DATA
-    ## TODO: Make class functionality more general
-
-    # types = paired_data_filtered["class"].iloc[0]
-    types = ["BH", "candidateBH"]
+    # Get the data for all other sources of the same type in the specified states, to plot as grey dots
     mask = (paired_data["class"].isin(types)) & (paired_data["state"].isin(states))
     other_data_filtered = paired_data[mask].copy()
     x_other = other_data_filtered["Lx"]
     y_other = other_data_filtered["Lr"]
 
-    colour = colours.get(source_name, 'black')
-
-
-
+    
+    # Set up the figure
     fig= plt.figure(figsize=(9,6))
     ax = fig.add_subplot(1,1,1)
 
+    # Plot the data for the source of interest
     plot, caps, bars = plt.errorbar(x, y, yerr=yerr, xerr=xerr, fmt='o', ms=5, mec=colour, mfc=colour, uplims=uplims,  xuplims=xuplims, capsize=0.5, ecolor="black", elinewidth=0.4, zorder=100)
     for cap in caps:
         cap.set_color('black')      # Set cap color
@@ -1299,29 +1376,11 @@ def plot_Lr_Lx_plot3(paired_data, source_name= "MAXI J1348-630", save_name=None,
     for bar in bars:
         bar.set_color('black')
 
-
+    # Plot the data for the other sources of the same type as grey dots
     plt.scatter(x_other, y_other, s=7, marker=".",color="grey")
 
 
-    # Create source type legend
-    #types = ["BH candidate" if typ == "candidateBH" else typ for typ in types]
-    #type_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".",  label=typ) for typ in types]
-    #phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 65) 
-    #type_legend_handles.append(phantom)
-    #type_legend = ax.legend(handles=type_legend_handles, loc="upper left", title="Types", handlelength=0, fontsize=10)
-    #ax.add_artist(type_legend)
-
-
-
-    # Create state legend (within plot) in black
-    #state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states] 
-    #phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
-    #state_legend_handles.append(phantom)
-    #state_legend = ax.legend(handles=state_legend_handles, loc="upper left",bbox_to_anchor=(0.18, 1.0), title="States", handlelength=0, fontsize=10)
-    #ax.add_artist(state_legend)  
-
-
-    ## Create combined legend
+    # Create combined legend in the top left corner
     types = ["BHC" if typ == "candidateBH" else typ for typ in types]
     types_str = ", ".join(types)
     states_str = ", ".join(states)
@@ -1341,55 +1400,55 @@ def plot_Lr_Lx_plot3(paired_data, source_name= "MAXI J1348-630", save_name=None,
     ax.add_artist(sample_legend)
 
 
-
-    # Filter GX339 to get the region of interest
-    # Previously: gx339_mask = (paired_data["name"]=="GX 339-4") & (lx > 2.7e34) & ( (t<58964) | (t>59083) ) & (lx_delta==False) & (states.isin(["HS", "QS"]))
-    lx = paired_data["Lx"]
-    t = paired_data["t"]    
-    lr = paired_data["Lr"]
-    lx_delta = paired_data["Fx_uplim_bool"]
-    lr_delta = paired_data["Fr_uplim_bool"]
-    states = paired_data["state"]
-    gx339_mask = (paired_data["name"]=="GX 339-4") & ( ((t < 58956) | (t > 59080)) & (lx > 2.7e34) & ((t < 59496) | (t >= 59505)) ) & (lx_delta==False) & (states.isin(["HS", "QS"]))
-    lr_gx339, lx_gx339,  delta_gx339 = lr[gx339_mask], lx[gx339_mask], lr_delta[gx339_mask]
-    gx339_color = colours.get("GX 339-4", 'black')
-    # Standard track fit parameters
-    lx0 = 5.47e+35
-    lr0 = 4.54e+28
-    alpha = 0.371
-    beta = 0.588
-    model_axis = np.linspace(min_Lx, max_Lx, 100) # L_X values
+    # Show the GX 339 data used to define the standard track
     if show_standard_track:
-        # The best fit:
+        
+        lx = paired_data["Lx"]
+        t = paired_data["t"]    
+        lr = paired_data["Lr"]
+        lx_delta = paired_data["Fx_uplim_bool"]
+        lr_delta = paired_data["Fr_uplim_bool"]
+        states = paired_data["state"]
+        
+        # Filter the data
+        gx339_mask = (paired_data["name"]=="GX 339-4") & ( ((t < 58956) | (t > 59080)) & (lx > 2.7e34) & ((t < 59496) | (t >= 59505)) ) & (lx_delta==False) & (states.isin(["HS", "QS"]))
+        lr_gx339, lx_gx339,  delta_gx339 = lr[gx339_mask], lx[gx339_mask], lr_delta[gx339_mask]
+        
+        # Get the colour for GX 339-4
+        gx339_color = colours.get("GX 339-4", 'black')
+        
+        # x values for plotting the best fit line
+        model_axis = np.linspace(min_Lx, max_Lx, 100) # L_X values
+        # The best fit for the standard track
         casefit = lr0 * (10**(alpha)) * ((model_axis/lx0)**(beta)) 
+
+        # Plot the standard track
         ax.errorbar(model_axis, casefit, fmt='--', color='black', lw=1.5)
+        
+        # Plot the GX 339 data used to define the standard track
         ax.errorbar(lx_gx339, lr_gx339, fmt='o', ms=7, mec='none', mfc=gx339_color, uplims=delta_gx339, capsize=0.5, ecolor="black", elinewidth=0.4, zorder=8)
 
 
 
     # Create source legend (at bottom) with dots
-    ##TODO: Make surce type labelling more general
-    source_name_text = source_name.replace("-", "–") 
-    if show_standard_track: legend_handles = [plt.Line2D([0], [0], marker=marker, color=c, linestyle='None', markersize=6, label=data_type) for data_type, marker, c in zip([f"{source_name_text} ({dist} kpc)",  "GX 339–4 'standard' track", "Other BHs / BHCs"],["o", "o", "."], [colour, gx339_color, "grey"])]
-    else: legend_handles = [plt.Line2D([0], [0], marker=marker, color=c, linestyle='None', markersize=6, label=data_type) for data_type, marker, c in zip([f"{source_name_text} ({dist} kpc)", "Other BHs / BHCs"],["o", "."], [colour, "grey"])]
+    exceptions = {"Aquila X-1", "Vela X-1", "Cen X-4", "Cir X-1"}
+    if source_name in exceptions: source_name_text = source_name
+    else: source_name_text = source_name.replace("-", "–") 
+    if show_standard_track: legend_handles = [plt.Line2D([0], [0], marker=marker, color=c, linestyle='None', markersize=6, label=data_type) for data_type, marker, c in zip([f"{source_name_text} ({dist:.2f} kpc)",  "GX 339–4 'standard' track", "Other BHs / BHCs"],["o", "o", "."], [colour, gx339_color, "grey"])]
+    else: legend_handles = [plt.Line2D([0], [0], marker=marker, color=c, linestyle='None', markersize=6, label=data_type) for data_type, marker, c in zip([f"{source_name_text} ({dist:.2f} kpc)", "Other BHs / BHCs"],["o", "."], [colour, "grey"])]
     legend = ax.legend(handles=legend_handles, loc="lower right", fontsize=10)
     ax.add_artist(legend) 
 
 
-
+    # Set axis labels, limits, scales
     plt.xlim([min_Lx,max_Lx])
     plt.ylim([min_Lr,max_Lr_2])
-
-    plt.xlabel(r'1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]')
-    plt.ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
-    #plt.xlabel(r'$L_X$ [erg s$^{-1}$]')
-    #plt.ylabel(r'$L_R$ [erg s$^{-1}$]')
+    plt.xlabel(r'1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]') #plt.xlabel(r'$L_X$ [erg s$^{-1}$]')
+    plt.ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]') #plt.ylabel(r'$L_R$ [erg s$^{-1}$]')
     ax.set_yscale("log", base=10)
     ax.set_xscale("log", base=10)
     ax.xaxis.set_major_locator(plt.LogLocator(base=10.0, numticks=10))
     ax.xaxis.set_minor_locator(plt.LogLocator(base=10.0, subs="auto", numticks=10))
-
-
 
     if save_name!=None: 
         plt.savefig(f"../FIGURES/{save_name}.png", dpi=600, bbox_inches="tight")
@@ -1405,19 +1464,40 @@ def plot_Lr_Lx_plot3(paired_data, source_name= "MAXI J1348-630", save_name=None,
 ## LRLX PLOTS FOR PAPER -- BH VS NS DETECTIONS
 
 
-def plot_LrLx_comparison(df, plot_type="BH_vs_NS"):
+def plot_LrLx_comparison(df, plot_type="BH_vs_NS", gx_339_filtered=False):
+    """
+    Plot the Lr-Lx plane comparing BHs and NSs (plot_type="BH_vs_NS") or comparing HS/QS vs SS states (plot_type="HS_vs_SS"), showing detections and upper limits separately
+    Optionally, it applies GX 339-4 filtering to the BH/BHC data.
+
+    This creates Figures 5 and 10 in the paper. 
+
+    Parameters
+    ----------
+    - df (DataFrame): DataFrame containing the paired Lr and Lx data
+    - plot_type (str, optional): Type of comparison to plot ("BH_vs_NS" or "HS_vs_SS", default: "BH_vs_NS")
+    - gx_339_filtered (bool, optional): Whether to apply GX 339-4 filtering to the BH/BHC data (default: False)
+    """
 
     if plot_type not in ["BH_vs_NS", "HS_vs_SS"]:
         print("Invalid plot type. Choose 'BH_vs_NS' or 'HS_vs_SS'.")
         return
 
 
+    # Plot the BH vs NS data for the HS and QS
+    # This is Figure 10 in the paper
     if plot_type == "BH_vs_NS":
-        ## Get the BH and NS masks
-
+        
+        # Get the BH and NS masks
         mask1 = df["class"].isin(["NS"]) & df["state"].isin(["HS", "QS"]) 
         mask2 = df["class"].isin(["BH", "candidateBH"]) & df["state"].isin(["HS", "QS"]) 
-    
+
+        if gx_339_filtered:
+            print("Applying GX 339-4 filtering to BH/BHC data...")
+            mask_to_excl = (df["name"]=="GX 339-4") & ( ((df["t"] >= 58956) & (df["t"] <= 59080)) | ((df["t"] >= 59496) & (df["t"] < 59505)) | (df["Lx"] <= 2.7e34) )
+            print(f"Number of GX 339-4 data points to exclude: {sum(mask_to_excl)}")
+            mask1 = mask1 & ~mask_to_excl
+            mask2 = mask2 & ~mask_to_excl
+
         mask1_detections = mask1 & (df["Fr_uplim_bool"]==False) & (df["Fx_uplim_bool"]==False)
         mask2_detections = mask2 & (df["Fr_uplim_bool"]==False) & (df["Fx_uplim_bool"]==False)
 
@@ -1425,17 +1505,26 @@ def plot_LrLx_comparison(df, plot_type="BH_vs_NS"):
         mask2_uplims = mask2 & ( (df["Fr_uplim_bool"]==True) | (df["Fx_uplim_bool"]==True) )
 
         colour1 = colour_NS
-        colour2= colour_BH
-
         label1 = "NS"
+
+        colour2= colour_BH
         label2 = "BH & BHC"
 
 
+    # Plot the HS/QS vs SS data for the BHs and candidate BHs
+    # This is Figure 5 in the paper
     elif plot_type == "HS_vs_SS":
-        ## Get the HS and SS masks -- just for BHs and candidate BHs
 
         mask1 = df["state"].isin(["HS", "QS"])  & (df["class"].isin(["BH", "candidateBH"])) 
         mask2 = df["state"].isin(["SS"])  & (df["class"].isin(["BH", "candidateBH"])) 
+
+        if gx_339_filtered:
+            print("Applying GX 339-4 filtering to BH/BHC data...")
+            mask_to_excl = (df["name"]=="GX 339-4") & ( ((df["t"] >= 58956) & (df["t"] <= 59080)) | ((df["t"] >= 59496) & (df["t"] < 59505)) | (df["Lx"] <= 2.7e34) )
+            print(f"Number of GX 339-4 data points to exclude: {sum(mask_to_excl)}")
+            mask1 = mask1 & ~mask_to_excl
+            mask2 = mask2 & ~mask_to_excl
+
     
         mask1_detections = mask1 & (df["Fr_uplim_bool"]==False) & (df["Fx_uplim_bool"]==False)
         mask2_detections = mask2 & (df["Fr_uplim_bool"]==False) & (df["Fx_uplim_bool"]==False)
@@ -1444,13 +1533,11 @@ def plot_LrLx_comparison(df, plot_type="BH_vs_NS"):
         mask2_uplims = mask2 & ( (df["Fr_uplim_bool"]==True) | (df["Fx_uplim_bool"]==True) )
 
         colour1 = "green"
-        colour2= "orange"
-        
         label1 = "HS & QS"
+        
+        colour2= "orange"
         label2 = "SS"
  
-
-
 
     ## Detections
     x1_det = df["Lx"][mask1_detections]
@@ -1465,15 +1552,16 @@ def plot_LrLx_comparison(df, plot_type="BH_vs_NS"):
 
 
     ## Upper limits
-    x1_uplim = df["Lx"][mask1_uplims].to_numpy()
-    y1_uplim = df["Lr"][mask1_uplims].to_numpy()
-    y1_uplim_bool = df["Fr_uplim_bool"][mask1_uplims].to_numpy()
-    x1_uplim_bool = df["Fx_uplim_bool"][mask1_uplims].to_numpy()
+    # either upper limit in Lx or Lr, or both
+    x1_uplim = df["Lx"][mask1_uplims].to_numpy() 
+    y1_uplim = df["Lr"][mask1_uplims].to_numpy() 
+    y1_uplim_bool = df["Fr_uplim_bool"][mask1_uplims].to_numpy() # whether Lr is an upper limit
+    x1_uplim_bool = df["Fx_uplim_bool"][mask1_uplims].to_numpy() # whether Lx is an upper limit
     dx1_uplim = np.zeros(len(x1_uplim)) # we don't plot the error bars
     dx1_uplim[x1_uplim_bool] = x1_uplim[x1_uplim_bool]/3
     dy1_uplim = np.zeros(len(y1_uplim))  # we don't plot the error bars
     dy1_uplim[y1_uplim_bool] = y1_uplim[y1_uplim_bool]/3
-
+    # Convert to log scale
     log_x1_uplim = np.log10(x1_uplim)
     log_y1_uplim = np.log10(y1_uplim)
     log_dx1_uplim = dx1_uplim / (x1_uplim * np.log(10))
@@ -1487,7 +1575,7 @@ def plot_LrLx_comparison(df, plot_type="BH_vs_NS"):
     dx2_uplim[x2_uplim_bool] = x2_uplim[x2_uplim_bool]/3
     dy2_uplim = np.zeros(len(y2_uplim))  # we don't plot the error bars
     dy2_uplim[y2_uplim_bool] = y2_uplim[y2_uplim_bool]/3
-
+    # Convert to log scale
     log_x2_uplim = np.log10(x2_uplim)
     log_y2_uplim = np.log10(y2_uplim)
     log_dx2_uplim = dx2_uplim / (x2_uplim * np.log(10))
@@ -1496,7 +1584,7 @@ def plot_LrLx_comparison(df, plot_type="BH_vs_NS"):
 
     ##################
 
-    ## KS Tests
+    ## KS Tests -- just for the detections
     pval_Lx = ks_2samp(log_x1_det, log_x2_det).pvalue
     pval_Lr = ks_2samp(log_y1_det, log_y2_det).pvalue
     pval_2D, D_2D = ks2d2s(log_x1_det, log_y1_det, log_x2_det, log_y2_det, extra=True)
@@ -1504,8 +1592,7 @@ def plot_LrLx_comparison(df, plot_type="BH_vs_NS"):
     print(f"KS test p-values: Lx={pval_Lx:.5e}, Lr={pval_Lr:.5e}, 2D={pval_2D:.5e}")
 
     ## Calculate the harmonic mean p-value 
-    # number of combined p-values
-    k = 2.0
+    k = 2.0 # number of combined p-values
     # harmonic mean p-value (equal weights)
     p_hmp = k / (1.0 / pval_Lx + 1.0 / pval_Lr)
     print(f"Harmonic mean p-value: {p_hmp:.5e}")
@@ -1532,12 +1619,12 @@ def plot_LrLx_comparison(df, plot_type="BH_vs_NS"):
     ax_top = fig.add_subplot(gs[0, 0], sharex=ax_main)
     ax_right = fig.add_subplot(gs[1, 1], sharey=ax_main)
 
-    ## Main scatter + KDE
+    ## Main scatter 
     ax_main.scatter(log_x1_det, log_y1_det, color=colour1, alpha=0.6, label=label1)
     ax_main.scatter(log_x2_det, log_y2_det, color=colour2, alpha=0.6, label=label2)
 
+    ## KDE -- using just the detections
     levels = [0.05, 0.25, 0.6, 0.9]
-
     sns.kdeplot(x=log_x1_det, y=log_y1_det, ax=ax_main, levels=levels, color=colour1, linewidths=1, fill=False)
     sns.kdeplot(x=log_x2_det, y=log_y2_det, ax=ax_main, levels=levels, color=colour2, linewidths=1, fill=False)
 
@@ -1592,8 +1679,8 @@ def plot_LrLx_comparison(df, plot_type="BH_vs_NS"):
     sns.kdeplot(log_x1_det, fill=True, alpha=0.2, linewidth=2, color=colour1, ax=ax_top)
     sns.kdeplot(log_x2_det, fill=True, alpha=0.2, linewidth=2, color=colour2, ax=ax_top)
     ax_top.set_ylabel("Density")
-    if plot_type == "BH_vs_NS": left = 0.98
-    elif plot_type == "HS_vs_SS": left = 0.23
+    #if plot_type == "BH_vs_NS": left = 0.98
+    #elif plot_type == "HS_vs_SS": left = 0.23
     #ax_top.text(left, 0.9, rf"KS: $p$ = {pval_Lx:.2g}", transform=ax_top.transAxes, ha='right', va='top', fontsize=10, bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8))
     plt.setp(ax_top.get_xticklabels(), visible=False)
 
@@ -1639,12 +1726,11 @@ def plot_LrLx_comparison(df, plot_type="BH_vs_NS"):
 
 
     ## Set axis limits and labels
-    ax_main.set_xlim([np.log10(min_Lx), np.log10(max_Lx)])
+    ax_main.set_xlim([np.log10(min_Lx), np.log10(max_Lx)]) 
     ax_main.set_ylim([np.log10(min_Lr), np.log10(max_Lr_2)])
-    #ax_main.set_xlabel(r'$L_X$ [erg s$^{-1}$]')
-    #ax_main.set_ylabel(r'$L_R$ [erg s$^{-1}$]')
-    ax_main.set_xlabel(r'1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]')
-    ax_main.set_ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
+    ax_main.set_xlabel(r'1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]') #ax_main.set_xlabel(r'$L_X$ [erg s$^{-1}$]')
+    ax_main.set_ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]') #ax_main.set_ylabel(r'$L_R$ [erg s$^{-1}$]')
+
 
     if plot_type == "BH_vs_NS":
         save_name = "BH_NS_distributions_interp"

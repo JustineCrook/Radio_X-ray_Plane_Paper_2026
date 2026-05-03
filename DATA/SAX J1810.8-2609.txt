@@ -7,7 +7,7 @@ NS,5.197,-3.431, [https://simbad.u-strasbg.fr/simbad/sim-id?ident=SAX%20J1810.8-
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
-90, [Hughes et al. 2024 & https://ui.adsabs.harvard.edu/abs/2024MNRAS.527.9359H/abstract], [Hughes et al. 2024 & https://ui.adsabs.harvard.edu/abs/2024MNRAS.527.9359H/abstract],,
+90, [Hughes et al. (2024) & https://ui.adsabs.harvard.edu/abs/2024MNRAS.527.9359H/abstract], [Hughes et al. (2024) & https://ui.adsabs.harvard.edu/abs/2024MNRAS.527.9359H/abstract],,
 
 
 

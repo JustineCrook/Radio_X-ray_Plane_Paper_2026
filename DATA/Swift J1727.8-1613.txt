@@ -7,7 +7,7 @@ BH,8.641,10.255, [https://simbad.harvard.edu/simbad/sim-id?Ident=Swift%20J1727.8
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
-68, [Hughes et al. 2025c & https://ui.adsabs.harvard.edu/abs/2025ApJ...988..109H/abstract], [Hughes et al. 2025c & https://ui.adsabs.harvard.edu/abs/2025ApJ...988..109H/abstract],,
+68, [Hughes et al. (2025c) & https://ui.adsabs.harvard.edu/abs/2025ApJ...988..109H/abstract], [Hughes et al. (2025c) & https://ui.adsabs.harvard.edu/abs/2025ApJ...988..109H/abstract],,
 
 
 

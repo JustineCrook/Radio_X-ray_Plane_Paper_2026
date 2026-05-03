@@ -6,7 +6,7 @@ candidateBH,29.961,-0.917, [https://simbad.u-strasbg.fr/simbad/sim-id?Ident=EXO+
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
-68, [Williams et al. 2020 & https://ui.adsabs.harvard.edu/abs/2020MNRAS.491L..29W/abstract], [Williams et al. 2020 & https://ui.adsabs.harvard.edu/abs/2020MNRAS.491L..29W/abstract] , , 
+68, [Williams et al. (2020) & https://ui.adsabs.harvard.edu/abs/2020MNRAS.491L..29W/abstract], [Williams et al. (2020) & https://ui.adsabs.harvard.edu/abs/2020MNRAS.491L..29W/abstract] , , 
 
 
 

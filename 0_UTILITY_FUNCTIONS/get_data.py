@@ -8,16 +8,37 @@ from pathlib import Path
 from astropy.time import Time
 
 
+
+##############################################################################################################
+## UNIT CONVERSIONS:
+
+# 1 Jy = 1e-23 erg s^-1 cm^-2 Hz^-1
+# 1 kpc = 1e3 * 3.0857e18 cm : https://lweb.cfa.harvard.edu/~dfabricant/huchra/ay145/constants.html
+jansky_to_erg_s_cm2_Hz = 1e-23
+kpc_to_cm = 1e3 * 3.0857e18
+
+# The 90% confidence interval is 1.645σ for a Gaussian: https://kalmanfilter.net/confInterval.html? ; https://www.andreaminini.net/math/critical-values-in-the-normal-distribution
+gaussian_90_to_68 = 1/1.645
+
+
+
+
 ##############################################################################################################
 ## HELPERS:
 
 def get_utc(mjd):
+    """
+    Convert MJD to UTC datetime.
+    """
     t = Time(mjd, format='mjd')
     utc_datetime = t.to_datetime()
     print(f"MJD {mjd}  -->  UTC {utc_datetime}")
 
 
 def get_mjd(utc):
+    """
+    Convert UTC datetime to MJD.
+    """
     t = Time(utc, format='isot', scale='utc')
     mjd = t.mjd
     print(f"UTC {utc}  -->  MJD {mjd}")
@@ -28,12 +49,15 @@ def get_mjd(utc):
 ## HELPERS: FLUX/LUMINOSITY CONVERSION FUNCTIONS
 
 
-## Convert radio flux density in units of mJy to radio luminosity in units of erg/s
-## Also returns error -- assuming nu has no uncertainty
 def convert_Fr(Fr_mJy, Fr_mJy_unc, d_kpc, d_kpc_unc, nu_GHz=1.28):
-    S = Fr_mJy * 1e-3 * 1e-23         # convert mJy to Jy, then Jy to erg s^-1 cm^-2 Hz^-1
-    d = d_kpc * 1e3 * 3.086e18       # convert kpc to cm
-    nu = nu_GHz * 1e9                # convert GHz to Hz
+    """
+    Convert radio flux density in units of mJy to radio luminosity in units of erg/s.
+    Also returns error -- assuming nu has no uncertainty. 
+    """
+    
+    S = Fr_mJy * 1e-3 * jansky_to_erg_s_cm2_Hz  # convert mJy to Jy, then Jy to erg s^-1 cm^-2 Hz^-1
+    d = d_kpc * kpc_to_cm  # convert kpc to cm
+    nu = nu_GHz * 1e9  # convert GHz to Hz
 
     # Calculate luminosity
     L = 4 * np.pi * d**2 * S * nu    # in erg/s
@@ -42,11 +66,14 @@ def convert_Fr(Fr_mJy, Fr_mJy_unc, d_kpc, d_kpc_unc, nu_GHz=1.28):
     return L, L_unc
 
 
-## Convert radio flux density in units of mJy to radio monochromatic luminosity in units of erg/s/Hz
-# Factor is 1.1967e18
 def convert_Fr_mono(Fr_mJy, Fr_mJy_unc, d_kpc, d_kpc_unc):
-    S = Fr_mJy * 1e-3 * 1e-23         # convert mJy to Jy, then Jy to erg s^-1 cm^-2 Hz^-1
-    d = d_kpc * 1e3 * 3.086e18       # convert kpc to cm
+    """
+    Convert radio flux density in units of mJy to radio monochromatic luminosity in units of erg/s/Hz.
+    Also returns error -- assuming nu has no uncertainty.
+    Factor is 1.1967e18.
+    """
+    S = Fr_mJy * 1e-3 * jansky_to_erg_s_cm2_Hz        # convert mJy to Jy, then Jy to erg s^-1 cm^-2 Hz^-1
+    d = d_kpc * kpc_to_cm       # convert kpc to cm
 
     # Calculate luminosity
     L = 4 * np.pi * d**2 * S     # in erg/s/Hz
@@ -57,11 +84,15 @@ def convert_Fr_mono(Fr_mJy, Fr_mJy_unc, d_kpc, d_kpc_unc):
     return L, L_unc
 
 
-## Convert X-ray flux in units of erg/s/cm^2 to luminosity in units of erg/s
-# So factor in front of flux is about 1.1967e44
+
 def convert_Fx(Fx_erg_s_cm2, Fx_erg_s_cm2_unc_l, Fx_erg_s_cm2_unc_u, d_kpc, d_kpc_unc):
+    """
+    Convert X-ray flux in units of erg/s/cm^2 to luminosity in units of erg/s.
+    Factor in front of flux is about 1.1967e44.
+    """
+
     S = Fx_erg_s_cm2 # units of erg/s/cm^2
-    d = d_kpc * 1e3 * 3.086e18       # convert kpc to cm
+    d = d_kpc * kpc_to_cm  # convert kpc to cm
 
     # Calculate luminosity
     L = 4 * np.pi * d**2 * S     # in erg/s
@@ -74,8 +105,10 @@ def convert_Fx(Fx_erg_s_cm2, Fx_erg_s_cm2_unc_l, Fx_erg_s_cm2_unc_u, d_kpc, d_kp
 
 
 
-## Convert flux density to a different frequency, assuming a particular spectral index
 def Fr(nu_GHz, S0_mJy, alpha, nu0_GHz = 1.28):
+    """
+    Convert flux density to a different frequency, assuming a particular spectral index.
+    """
 
     S_mJy = S0_mJy * (nu_GHz/nu0_GHz)**alpha
 
@@ -87,7 +120,11 @@ def Fr(nu_GHz, S0_mJy, alpha, nu0_GHz = 1.28):
 ## READ DATA FOR A PARTICULAR SOURCE
 
 def read_data(file_path, add_sys_er = True, verbose=True):
+    """
+    Function to read data from a text file and return the source metadata, observation metadata, radio data, and X-ray data as separate Pandas DataFrames.
+    """
 
+    # Get the file path
     p = Path(file_path)
     source_name = p.stem
     if verbose: print(source_name)
@@ -99,7 +136,7 @@ def read_data(file_path, add_sys_er = True, verbose=True):
         f.readline() # Ignore first line, as this just states who I got the data from
         content = f.read()
 
-    # Split content by lines that start with '#', as these are the section headers
+    # Split content by lines that start with '##', as these are the section headers
     raw_sections = content.split('## ')
     for section in raw_sections:
 
@@ -130,9 +167,13 @@ def read_data(file_path, add_sys_er = True, verbose=True):
         sections[section_name] = df
 
 
+    # Assign each section to a dataframe
     source_df, obs_df, radio_df, xray_df= sections["SOURCE_METADATA"], sections["OBS_METADATA"], sections["RADIO_DATA"], sections["XRAY_DATA"]
+
+    # Get the X-ray confidence interval (e.g. 68% or 90%) for the statistical uncertainty.
     xray_CI = obs_df["xray_CI"].values[0] 
 
+    # Add a column for the source name to each dataframe.
     radio_df.insert(0, "name", source_name)
     xray_df.insert(0, "name", source_name)
     source_df.insert(0, "name", source_name)
@@ -150,6 +191,7 @@ def read_data(file_path, add_sys_er = True, verbose=True):
 
     #### RADIO DATA
 
+    # Replace NaN values in Rstate with "Unclear"
     radio_df["Rstate"] = radio_df["Rstate"].fillna("Unclear")
 
     # Detections:
@@ -181,6 +223,7 @@ def read_data(file_path, add_sys_er = True, verbose=True):
     ######################
     ### X-RAY DATA
 
+    # Replace NaN values in Xstate with "Unclear"
     xray_df["Xstate"] = xray_df["Xstate"].fillna("Unclear")
     
     # Detections:
@@ -191,20 +234,20 @@ def read_data(file_path, add_sys_er = True, verbose=True):
         if verbose: print(f"Warning for row(s): {list(xray_df.index[missing_mask] + 1)} -- Fx, Fx_unc_l, or Fx_unc_u is empty for this detection.")
     # Replace NaN values in Fx_unc_u with values from Fx_unc_l -- i.e. in cases where people just had a symmetric uncertainty and didn't fill it in for the other value
     xray_df.loc[mask_detection,'Fx_unc_u'] = xray_df.loc[mask_detection,'Fx_unc_u'].fillna(xray_df.loc[mask_detection,'Fx_unc_l'])
+    # Add systematic uncertainty (10%) for the detections -- use vectorisation
     if add_sys_er: # Systematic uncertainty was not included in the quoted uncertainty
         # If 90% uncertainty was used for the statistical uncertainty, convert this to 68%, assuming Gaussian errors
         # Note that this is not quite correct for the cstat points, but suffices for our purposes
-        conversion = 0.60795
         if verbose: print("X-ray uncertainty percentage: ", xray_CI)
         if xray_CI==68: pass
         elif xray_CI==90:
             if verbose: print("Converting uncertainties to 68% (assuming Gaussian errors).")
-            xray_df.loc[mask_detection, 'Fx_unc_l'] = xray_df.loc[mask_detection, 'Fx_unc_l']*conversion
-            xray_df.loc[mask_detection, 'Fx_unc_u'] = xray_df.loc[mask_detection, 'Fx_unc_u']*conversion
+            xray_df.loc[mask_detection, 'Fx_unc_l'] = xray_df.loc[mask_detection, 'Fx_unc_l']*gaussian_90_to_68
+            xray_df.loc[mask_detection, 'Fx_unc_u'] = xray_df.loc[mask_detection, 'Fx_unc_u']*gaussian_90_to_68
         else: 
             if verbose: print("Warning: The X-ray statistical uncertainty confidence interval should be 68 percent or 90 percent... Assuming it is 68 percent.")
         
-        # Add systematic uncertainty (10%) for the detections ; except for XTE J1701-462, which we give 20% uncertainty
+        # Add systematic uncertainty (10%) for the detections ; except for XTE J1701-462, which we give 20% uncertainty (see the paper)
         if source_name=="XTE J1701-462":
             perc = 0.2
         else: 
@@ -244,19 +287,20 @@ def read_data(file_path, add_sys_er = True, verbose=True):
 
 def get_bahramian_data(path_to_data = "../bahramian_DATA/", include_oddsources=False, convert_Fr=True, include_uplims=False):
     """
-    Function to read data from various CSV files and construct a single Pandas DF
+    Function to read data from various CSV files and construct a single Pandas dataframe.
 
     Parameters
     ----------
-    path_to_data: directory containing all csv data files 
-
-    include_oddsources: boolean, indicating whether Cyg X-1 and GRS1915 should be included
+    - path_to_data: directory containing all csv data files 
+    - include_oddsources: boolean, indicating whether Cyg X-1 and GRS1915 should be included
 
     Returns
     -------
-    data: a single Pandas dataframe containing all data provided for LrLx
+    - data: a single Pandas dataframe containing all data provided for LrLx
 
     """
+
+    # Read the data from the CSV files and concatenate them into a single dataframe
     DATA_BHs = pd.read_csv(path_to_data+'lrlx_data_BHs.csv')
     DATA_candBHs = pd.read_csv(path_to_data+'lrlx_data_candidateBHs.csv')
     DATA_NSs = pd.read_csv(path_to_data+'lrlx_data_NSs.csv')
@@ -282,21 +326,28 @@ def get_bahramian_data(path_to_data = "../bahramian_DATA/", include_oddsources=F
         DATA = DATA[DATA["uplim"].isna()]
 
 
-    # Remove rows where "Class" is "WD" or "tMSP"
+    # Remove rows where "Class" is "WD" or "tMSP" -- since we don't have any of these sources in our sample.
     DATA = DATA[~DATA["Class"].isin(["WD", "tMSP"])]
+
+
+    # Remove rows where "Class" is "candidateBH"
+    # These were not identified as candidates with the same techniques (during outburst) used to identify what the current paper defines as BH candidates as observed with MeerKAT
+    DATA = DATA[~DATA["Class"].isin(["candidateBH"])]
 
 
     # Replace "AMXP" with "NS" in the "Class" column
     DATA["Class"] = DATA["Class"].replace("AMXP", "NS")
 
+
+    # Extract the relevant columns as numpy arrays
     lr_all = DATA["Lr"].to_numpy()
     lx_all= DATA["Lx"].to_numpy()
     source_class = DATA["Class"].to_numpy()
-
     uplims = DATA["uplim"].to_numpy()
-    uplims_lr = uplims == "Lr"
-    uplims_lx = uplims == "Lx"
+    uplims_lr = (uplims == "Lr")
+    uplims_lx = (uplims == "Lx")
 
+    # Bahramian flux densities are at 5 GHz, but ours is at 1.28 GHz.
     # Assuming flat spectral index for Bahramian data, then the flux at the two frequencies are the same, i.e. F_1.2 = F_5. 
     # But Lr_1.2 = L_5 * (1.28/5) 
     if convert_Fr: 
@@ -305,7 +356,6 @@ def get_bahramian_data(path_to_data = "../bahramian_DATA/", include_oddsources=F
 
     if include_uplims:
         return lr_all, lx_all, source_class, uplims_lr, uplims_lx
-
     return lr_all, lx_all, source_class
 
 
@@ -313,9 +363,13 @@ def get_bahramian_data(path_to_data = "../bahramian_DATA/", include_oddsources=F
 ## RUNNER FUNCTIONS TO GET THE DATA FOR ALL THE SOURCES
 
 
-## Get a dataframe containing the data for all the sources with both radio and X-ray data
+
 def get_all_data():
+    """
+    Runner function to get a dataframe containing the data for all the sources.
+    """
     
+    ## Get the file paths for all the data files in the DATA folder
     folder_path = "../DATA"
     txt_files = glob.glob(f"{folder_path}/*.txt")
     print(f"Found {len(txt_files)} data files.")
@@ -329,15 +383,18 @@ def get_all_data():
         p = Path(path)
         name = p.stem
 
-
-        ## Get the Fr and Fx data
-        if name == "MAXI J1631-479":  source_metadata, obs_metadata, radio_data, xray_data  = read_data(path, add_sys_er=False, verbose=False) # only source that already has X-ray systematic error included
+        ## Get the Fr and Fx data, using the function defined above.
+        # The X-ray data for MAXI J1631-479 already has the X-ray systematic error included, so we don't want to add this again. 
+        # For the other sources, we add the systematic error as described in the paper.
+        if name == "MAXI J1631-479":  source_metadata, obs_metadata, radio_data, xray_data  = read_data(path, add_sys_er=False, verbose=False) 
         else: source_metadata, obs_metadata, radio_data, xray_data  = read_data(path, add_sys_er=True, verbose=False)
 
 
-        ## Calculate the luminosities
+        ## Calculate the luminosities and add them to the dataframes.
+        # For the plots, we don't show the distance uncertainties (treat this as zero).
         d_kpc = source_metadata["D"][0]
-        print(f"{name}: Distance [kpc] = {d_kpc}")
+        d_dist = source_metadata["D_prob"][0]
+        print(f"{name}: Distance [kpc] = {d_kpc}, distribution [kpc] = {d_dist}")
         d_kpc_unc = 0 # kpc
         Lr, Lr_unc = convert_Fr(radio_data['Fr'].to_numpy(), radio_data['Fr_unc'].to_numpy(),d_kpc,d_kpc_unc, nu_GHz=1.28)
         radio_data['Lr'] = Lr
@@ -359,7 +416,7 @@ def get_all_data():
         xray_data["D"] = d_kpc
 
 
-        ## Add data for this source to the final dataframes
+        ## Add data for this source to the final dataframes (all sources combined)
         all_xray_df = pd.concat([all_xray_df, xray_data], ignore_index=True)
         all_radio_df = pd.concat([all_radio_df, radio_data], ignore_index=True)
 

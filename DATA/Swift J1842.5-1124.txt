@@ -6,7 +6,7 @@ candidateBH,21.727,-3.179, [https://simbad.u-strasbg.fr/simbad/sim-id?ident=SWIF
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
-68, [Zhang et al. 2022 & https://ui.adsabs.harvard.edu/abs/2022MNRAS.510.1258Z/abstract], [Zhang et al. 2022 & https://ui.adsabs.harvard.edu/abs/2022MNRAS.510.1258Z/abstract],,
+68, [Zhang et al. (2022) & https://ui.adsabs.harvard.edu/abs/2022MNRAS.510.1258Z/abstract], [Zhang et al. (2022) & https://ui.adsabs.harvard.edu/abs/2022MNRAS.510.1258Z/abstract],,
 
 
 

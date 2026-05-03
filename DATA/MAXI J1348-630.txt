@@ -6,7 +6,7 @@ candidateBH,309.264,-1.103, [https://simbad.u-strasbg.fr/simbad/sim-id?Ident=MAX
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
-90, [Carotenuto et al. 2021a & https://ui.adsabs.harvard.edu/abs/2021MNRAS.504..444C/abstract; Carotenuto et al. 2021b & https://ui.adsabs.harvard.edu/abs/2021MNRAS.505L..58C/abstract], [Carotenuto et al. 2021a & https://ui.adsabs.harvard.edu/abs/2021MNRAS.504..444C/abstract; Carotenuto et al. 2021b & https://ui.adsabs.harvard.edu/abs/2021MNRAS.505L..58C/abstract] , , 
+90, [Carotenuto et al. (2021a) & https://ui.adsabs.harvard.edu/abs/2021MNRAS.504..444C/abstract; Carotenuto et al. (2021b) & https://ui.adsabs.harvard.edu/abs/2021MNRAS.505L..58C/abstract], [Carotenuto et al. (2021a) & https://ui.adsabs.harvard.edu/abs/2021MNRAS.504..444C/abstract; Carotenuto et al. (2021b) & https://ui.adsabs.harvard.edu/abs/2021MNRAS.505L..58C/abstract] , , 
 
 
 ## XRAY_DATA

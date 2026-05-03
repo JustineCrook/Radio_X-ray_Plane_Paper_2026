@@ -7,7 +7,7 @@ NS,340.813,-2.488,[https://simbad.u-strasbg.fr/simbad/sim-id?Ident=XTE+J1701-462
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
-68, [Gasealahwe et al. (in prep.) & ], [Gasealahwe et al. 2024 & https://ui.adsabs.harvard.edu/abs/2024MNRAS.533.1800G/abstract] , , 
+68, [Gasealahwe et al. (in prep.) & ], [Gasealahwe et al. (2024) & https://ui.adsabs.harvard.edu/abs/2024MNRAS.533.1800G/abstract] , , 
 
 
 

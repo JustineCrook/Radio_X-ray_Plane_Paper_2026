@@ -7,7 +7,7 @@ BH,45.366,-0.219, [https://simbad.cds.unistra.fr/simbad/sim-id?Ident=GRS+1915%2B
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
-, [], [Motta et al. 2021 & https://ui.adsabs.harvard.edu/abs/2021MNRAS.503..152M/abstract ; Motta et al. 2025 & https://ui.adsabs.harvard.edu/abs/2025A%26A...696A.222M/abstract  ], "We do not report on the Swift XRT data, since the source is heavily dust-obscured.", 
+, [], [Motta et al. (2021) & https://ui.adsabs.harvard.edu/abs/2021MNRAS.503..152M/abstract ; Motta et al. (2025) & https://ui.adsabs.harvard.edu/abs/2025A%26A...696A.222M/abstract  ], "We do not report on the Swift XRT data, since the source is heavily dust-obscured.", 
 
 
 

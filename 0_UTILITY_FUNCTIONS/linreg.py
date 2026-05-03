@@ -52,8 +52,12 @@ mpl.rcParams["text.usetex"] = False
 label_size = 10
 font_size = 20
 
+
+# Result from the function get_all_data()
+# This is the median of the HS/QS detections.
 Lr_med = 4.54e+28 #erg/s
-Lx_med = 5.47e+35 #erg/s
+Lx_med = 7.51e+35 #erg/s
+
 
 
 ##############################################################################################################
@@ -63,7 +67,8 @@ Lx_med = 5.47e+35 #erg/s
 
 def hist_plotter(ax, edges, counts, C='k', LW=2, normalised_to_one=True, label='', ALPHA=1.0):
     """
-    Function that can plot a histogram using the output of np.histogram and a defined axis. I.e. it uses manual step plotting (rather than plt.hist). 
+    Function that can plot a histogram using the output of np.histogram and a defined axis. 
+    I.e. it uses manual step plotting (rather than plt.hist). 
     It draws flat-topped rectangles (like a histogram) using line segments.
     """
     
@@ -119,6 +124,9 @@ def sample_from_distribution(dist_type, param1, param2):
         a, b = (lower - param1) / param2, (upper - param1) / param2
         return truncnorm.rvs(a, b, loc=param1, scale=param2, size=1)[0]
     
+    elif dist_type == "gauss_alt":
+        return np.random.normal(loc=param1, scale=param2)
+    
     ## Uniform distribution
     # param1 is the lower bound and param2 is the upper bound
     elif dist_type == "uniform":
@@ -144,6 +152,7 @@ def sample_from_distribution_nruns(dist_type, param1, param2, seed=5, N_runs=1):
     # param1 is the lower bound and param2 is the upper bound
     elif dist_type == "uniform":
         return np.random.uniform(param1, param2, size=N_runs)
+
 
 
 def plot_distance_distribution(distance_samples_all, unique_names, unique_D, unique_D_prob):
@@ -206,9 +215,23 @@ In other words: d_corr  = 2*log(Di/D)
 """
 
 
-def run_mcmc_iteration(j, x, y, dx, dy, delta, K, dir, seed, silence=True, xycov=None,  min_iter=5000, max_iter=10000):
+def run_mcmc_iteration(j, x, y, dx, dy, delta, K, dir, seed, silence=True, xycov=None,  min_iter=5000, max_iter=10000, testing=False):
     """
-    - j is the iteration number
+    Run a single MCMC iteration of linmix and save the results.
+
+    Parameters:
+    -----------
+    - j is the iteration number (used for saving the results in different files for each iteration)
+    - x, y: the data points (logLx and logLr in our case)
+    - dx, dy: the uncertainties on the data points in log space
+    - delta: an array indicating which data points are upper limits (0) and which are detections (1)
+    - K: the number of Gaussians to use in the mixture model for the distribution of the independent variable (logLx in our case)
+    - dir: the directory to save the results
+    - seed: the random seed for reproducibility
+    - silence: whether to suppress print statements during the MCMC run
+    - xycov: the covariance between x and y (not used in this case, but can be included if needed)
+    - min_iter: the minimum number of MCMC iterations to run (linmix will run at least this many iterations before checking for convergence)
+    - max_iter: the maximum number of MCMC iterations to run (linmix will stop after this many iterations even if convergence has not been reached)    
 
     IMPORTANT: 
     After convergence is reached, the second halves of all chains are concatenated and stored in the .chain attribute as a numpy recarray.
@@ -254,6 +277,17 @@ def run_mcmc_iteration(j, x, y, dx, dy, delta, K, dir, seed, silence=True, xycov
     np.savetxt(f'{dir}/summary_results_{j}.txt', all_summary_results)
 
 
+    if testing: 
+        lr0, lx0 = Lr_med, Lx_med
+        plt.errorbar(x, y, xerr=dx, yerr=dy, uplims= ~delta.astype(bool), fmt='o', capsize=1, zorder= 1)
+        plt.xlim([np.log10(min_Lx/lx0), np.log10(max_Lx/lx0)])
+        plt.ylim([np.log10(min_Lr/lr0), np.log10(max_Lr_2/lr0)])
+        test_x = [ 1.4245978,   1.65991001,  0.40032202, -0.51227184, -1.40431599]
+        test_y = [ 0.34963731 , 0.66882698, -0.25191577, -1.27788073, -1.35894846]
+        plt.scatter(test_x, test_y, color='red', label='Test points', alpha=0.2, marker='X', zorder=5)
+        plt.show()
+
+
 
 
 ##############################################################################################################
@@ -262,19 +296,34 @@ def run_mcmc_iteration(j, x, y, dx, dy, delta, K, dir, seed, silence=True, xycov
 
 def run_linmix(N_runs=1, K=3, seed=42, parallel=True, min_iter=5000, max_iter=7000,
                names = None, interp=False, type_source=None, include_Fr_uplims=True,
-               verbose= False, gx_339_filtered=False, add_additional_error=False):
+               verbose= False, gx_339_filtered=False, add_additional_error=False, testing=False, gauss_alt=False):
     """
     Runner function to run linmix for N_runs iterations, applying distance corrections each time.
-    The code is structured such that the first iteration is always run with the best predictions for the distances.
+    The code is structured such that the first iteration is always run with the nominal predictions for the distances.
 
-    Use names = ["...", "..."] if we do not want to include all the sources.
+    Parameters:
+    -----------
+    - N_runs: the number of iterations to run (i.e. the number of times to re-draw the distances and apply the corresponding corrections)
+    - K: the number of components for the linear model
+    - seed: the random seed for reproducibility
+    - parallel: whether to run the MCMC in parallel
+    - min_iter: the minimum number of MCMC iterations to run
+    - max_iter: the maximum number of MCMC iterations to run
+    - names: a list of source names to include in the analysis. Use names = ["...", "..."] if we do not want to include all the sources.
+    - interp: whether to use the interpolated (True) or paired LrLx plane (False)
+    - type_source: the type of source to include in the analysis -- "BH" or "NS"
+    - include_Fr_uplims: whether to include Fr upper limits 
+    - verbose: whether to print detailed output
+    - gx_339_filtered: whether to filter the data for GX 339-4 to exclude the additional branch
+    - add_additional_error: whether to add an additional error term to the uncertainties (Gallo method)
+    - testing: whether to display testing plots
     """
 
     ##############################
     ## GET THE DATA
     # Important: The Lx upper limits have been excluded, as linmix does not have the functionality to fit these
     # Get the luminosity (results using the best distance estimates)
-    lr0, lx0, lr, dlr, delta_radio, lx, dlx_l, dlx_u, delta_xrays, source_names, unique_names, unique_D, unique_D_prob, t = get_data_arrays(names = names, interp=interp, rerun = False, save=False, incl_Fr_uplims=include_Fr_uplims, type_source=type_source, gx_339_filtered=gx_339_filtered)
+    lr0, lx0, lr, dlr, delta_radio, lx, dlx_l, dlx_u, delta_xrays, source_names, unique_names, unique_D, unique_D_prob, t = get_data_arrays(names = names, interp=interp, rerun = False, save=False, incl_Fx_uplims=False, incl_Fr_uplims=include_Fr_uplims, type_source=type_source, gx_339_filtered=gx_339_filtered)
     delta = delta_radio.astype(int) # Convert boolean to int (1 for detection, 0 for upper limit)
 
     
@@ -285,7 +334,7 @@ def run_linmix(N_runs=1, K=3, seed=42, parallel=True, min_iter=5000, max_iter=70
     - In the equations below, the uncertainties are the same as they would be without normalisation (it cancels out).
     - We can choose to take the average of the upper and lower uncertainty: 
         0.5*(upper - lower) = 0.5*(lower_er + upper_er) = 0.5*[log10(x+dx_u) - log10(x-dx_l)] = 0.5*[ (log10(x+dx_u) - log10(x)) + (log10(x) - log10(x-dx_l))]                         
-        OR we can take the max of the upper and lower uncertainty (conservative approach)... which is what we do.
+      OR we can take the max of the upper and lower uncertainty (conservative approach)... which is what we do.
     """
 
     # x:
@@ -309,6 +358,7 @@ def run_linmix(N_runs=1, K=3, seed=42, parallel=True, min_iter=5000, max_iter=70
         print("Adding an additional error of 0.15 dex in quadrature to the y errors to see how this affects the results.")
         log_dlr_scaled = np.sqrt(log_dlr_scaled**2 + 0.15**2) # add an additional error of 0.15 dex in quadrature to the y errors, to see how this affects the results
         print("The y errors after adding the additional error are: ", log_dlr_scaled[:5])
+
 
     ##############################
 
@@ -349,6 +399,14 @@ def run_linmix(N_runs=1, K=3, seed=42, parallel=True, min_iter=5000, max_iter=70
     ## Get the distance used for each iteration and each unique source
     distance_samples_all = []
 
+    if gauss_alt: 
+        print("Using alt Gauss method")
+        # for all "gauss" in unique_D_prob, replace with "gauss_alt"
+        unique_D_prob = [
+            f"('gauss_alt', {vals[1]}, {vals[2]})" if vals[0] == "gauss" else dist
+            for dist in unique_D_prob
+            for vals in [ast.literal_eval(dist)]
+        ]
 
     for j in range(N_runs):
 
@@ -365,18 +423,19 @@ def run_linmix(N_runs=1, K=3, seed=42, parallel=True, min_iter=5000, max_iter=70
             distance_samples = np.array([sample_from_distribution(*ast.literal_eval(dist)) for dist in unique_D_prob])
             distance_samples_all.append(distance_samples)
             # Calculate 2* np.log10(Di/D) fo each source
-            distance_ratios = distance_samples / unique_D
-            d_corr = 2.*np.log10(distance_ratios)
+            distance_ratios = distance_samples / unique_D # has length n_unique_sources
+            d_corr = 2.*np.log10(distance_ratios) # has length n_unique_sources
             # Map the dcorr to the source name
-            d_corr_dict = dict(zip(unique_names, d_corr))
+            d_corr_dict = dict(zip(unique_names, d_corr)) # maps each unique source name to its corresponding dcorr value, has length n_unique_sources
             # Assign the correction to the data points (since there are multiple data points per source)
             # source_names is the array of source names for each data point.
-            d_corr = np.array([d_corr_dict[name] for name in source_names])
+            d_corr = np.array([d_corr_dict[name] for name in source_names]) # has length n_data
     
         d_corr_all.append(d_corr)
 
     if verbose: # Plot distribution for each of the sources
         plot_distance_distribution(np.array(distance_samples_all), unique_names, unique_D, unique_D_prob)
+
 
      
     ##############################
@@ -394,22 +453,60 @@ def run_linmix(N_runs=1, K=3, seed=42, parallel=True, min_iter=5000, max_iter=70
     # Run iterations sequentially
     else: 
         for j, d_corr in enumerate(d_corr_all):
+
+            if testing: 
+                # Get data for MAXI J1348
+                name = "MAXI J1348-630"
+                mask = source_names == name
+                print("d_corr for this source: ", d_corr[mask])
+                print("Lx before any transformation: ", lx[mask][:5])
+                print("Lx after transformation:", log_lx_scaled[mask][:5])
+                print("Lx after dcorr:", (log_lx_scaled + d_corr)[mask][:5])
+                print("Lr before any transformation: ", lr[mask][:5])
+                print("Lr after transformation:", log_lr_scaled[mask][:5])
+                print("Lr after dcorr:", (log_lr_scaled + d_corr)[mask][:5])
+                plt.errorbar((log_lx_scaled+d_corr)[mask], (log_lr_scaled+d_corr)[mask], xerr= log_dlx_scaled[mask], yerr=log_dlr_scaled[mask], uplims= ~delta[mask].astype(bool), fmt='o', capsize=1, zorder=1)
+                test_x = [ 1.4245978,   1.65991001,  0.40032202, -0.51227184, -1.40431599]
+                test_y = [ 0.34963731 , 0.66882698, -0.25191577, -1.27788073, -1.35894846]
+                plt.scatter(test_x, test_y, color='red', label='Test points', alpha=0.2, marker='X', zorder=5)
+                plt.xlim([np.log10(min_Lx/lx0), np.log10(max_Lx/lx0)])
+                plt.ylim([np.log10(min_Lr/lr0), np.log10(max_Lr_2/lr0)])
+                plt.show()
+
             run_mcmc_iteration(j, x = log_lx_scaled + d_corr, y = log_lr_scaled+d_corr, dx = log_dlx_scaled, dy = log_dlr_scaled, 
-                               delta = delta, K = K, dir= dir, seed=seed, silence=silence, min_iter= min_iter, max_iter=max_iter)
+                               delta = delta, K = K, dir= dir, seed=seed, silence=silence, min_iter= min_iter, max_iter=max_iter, testing=testing)
 
 
-
+ 
 
 
 ##############################################################################################################
 ## GET THE LINMIX RESULTS AFTER RUNNING
 
 
-def show_and_plot_results(N_runs,dir, ax, lr0, lx0, colour, colour_line, show_alt_uncertainty_methods=False, best_fit_fmt = '-', plot_unc= True, best_fit_legend_only_beta=False, zorder=None):
+def show_and_plot_results(N_runs,dir, ax, lr0, lx0, colour_line, show_alt_uncertainty_methods=False, best_fit_fmt = '-', plot_unc= True, best_fit_legend_only_beta=False, zorder=None, testing=False):
     """
+    Helper function to plot the results after running linmix for N_runs iterations. 
+    It reads in the results from the files, calculates the percentiles, and plots the best-fit line and uncertainty region.
+
+
+    Parameters:
+    -----------
+    - N_runs: the number of iterations that were run (i.e. the number of times that linmix was run with different distance corrections)
+    - dir: the directory where the results were saved
+    - ax: the axis to plot on
+    - lr0, lx0: the normalisation constants for Lr and Lx (used to convert back from log space to linear space for plotting)
+    - colour_line: the colour to use for the best-fit line
+    - show_alt_uncertainty_methods: whether to show the results from the alternative methods of calculating the uncertainties 
+    - best_fit_fmt: the format to use for the best-fit line (e.g. '-' for solid, '--' for dashed)
+    - plot_unc: whether to plot the uncertainty region around the best-fit line
+    - best_fit_legend_only_beta: whether to only include the slope (beta) in the legend for the best-fit line, rather than the full equation
+    - zorder: the zorder to use for the best-fit line and uncertainty region (if None, will use default zorder)
+
     NOTES:
     y = alpha + beta * x_plot = log(lr/lr0) .... log space linreg results
-    lr_plot = lr0 * 10**(a + b * x_plot) =  lr0 * (10 ** a) * ((lx_plot / lx0) ** b) 
+    x_plot = log(lx_plot / lx0)
+    lr_plot = lr0 * 10**(alpha + beta * x_plot) =  lr0 * (10 ** alpha) * ((lx_plot / lx0) ** beta) 
 
     LR = LR0 * Xi * (LX / LX0)^beta 
     => log(LR/LR0) = log(Xi) + beta * log(LX/LX0) = alpha + beta * log(LX/LX0)
@@ -453,9 +550,9 @@ def show_and_plot_results(N_runs,dir, ax, lr0, lx0, colour, colour_line, show_al
     alpha_16, beta_16, sigma_16 = np.array(alpha_16), np.array(beta_16), np.array(sigma_16)
     alpha_84, beta_84, sigma_84 = np.array(alpha_84), np.array(beta_84), np.array(sigma_84)
 
+
     ######################################
     ### GET PARAMETER ESTIMATES
-
     
     ## Results using all values together
     # 1 sigma is +-34% from the mean 
@@ -469,14 +566,24 @@ def show_and_plot_results(N_runs,dir, ax, lr0, lx0, colour, colour_line, show_al
         mean = np.mean(samples)
         p16, p84 = np.percentile(samples, [16, 84])
         return f"{mean:.3f}  -{(mean - p16):.3f}  +{(p84 - mean):.3f}"
+    def helper_format(mid, lower, upper):
+        return f"{mid:.3f}  -{(lower):.3f}  +{(upper):.3f}"
+    ## Final parameter estimates to use 
+    beta, dbeta_l, dbeta_u = get_percentiles(all_betas, string=False)
+    dbeta = np.max([dbeta_u, dbeta_l])
+    alpha, dalpha_l, dalpha_u = get_percentiles(all_alphas, string=False)
+    dalpha = np.max([dalpha_u, dalpha_l])
+    sigma, dsigma_l, dsigma_u = get_percentiles(all_sigmas, string=False)
+    dsigma = np.max([dsigma_u, dsigma_l])
+    # Print the results
     print ("The fitted values and uncertainties based on the mean, 16th, and 84th percentile of all values")
     print("Alpha =", get_means(all_alphas))
     print("Beta  =", get_means(all_betas))
     print("Sigma =", get_means(all_sigmas))
     print ("The fitted values and uncertainties based on the median, 16th, and 84th percentile of all values" )
-    print("Alpha =", get_percentiles(all_alphas))
-    print("Beta  =", get_percentiles(all_betas))
-    print("Sigma =", get_percentiles(all_sigmas))
+    print("Alpha =", helper_format(alpha, dalpha_l, dalpha_u))
+    print("Beta  =", helper_format(beta, dbeta_l, dbeta_u))
+    print("Sigma =", helper_format(sigma, dsigma_l, dsigma_u))
     print("The 90% lower limit on beta from all values")
     print("Beta >", f"{np.percentile(all_betas, 10):.3f}")
     print("The 90% upper limit on beta from all values")
@@ -502,14 +609,6 @@ def show_and_plot_results(N_runs,dir, ax, lr0, lx0, colour, colour_line, show_al
     print()
 
 
-    ## Final parameter estimates to use 
-    beta, dbeta_l, dbeta_u = get_percentiles(all_betas, string=False)
-    dbeta = np.max([dbeta_u, dbeta_l])
-    alpha, dalpha_l, dalpha_u = get_percentiles(all_alphas, string=False)
-    dalpha = np.max([dalpha_u, dalpha_l])
-    sigma, dsigma_l, dsigma_u = get_percentiles(all_sigmas, string=False)
-    dsigma = np.max([dsigma_u, dsigma_l])
-
 
 
     ######################################
@@ -531,7 +630,6 @@ def show_and_plot_results(N_runs,dir, ax, lr0, lx0, colour, colour_line, show_al
     ######################################
     ### PLOT THE RESULTS
 
-
     log_lx_plot = np.linspace(np.log10(min_Lx),np.log10(max_Lx),100,endpoint=True) # log Lx grid for plotting
     lx_plot = 10.0**log_lx_plot # Lx values
     x_plot = np.log10(lx_plot / lx0)  # X grid in log-space
@@ -546,14 +644,16 @@ def show_and_plot_results(N_runs,dir, ax, lr0, lx0, colour, colour_line, show_al
     
 
     ## PLOT UNCERTAINTIES
+    # There are multiple ways to visualise the uncertainties.
+    # Other ways include plotting posterior samples.  
 
     if plot_unc:
         ## Get all the results (using all posterior samples; i.e. n=N_runs*n_chains samples)
         # all_alphas has shape (n,1) and x_plot has shape (m,1)
         y = all_alphas[:, None] + all_betas[:, None] * x_plot[None, :] # y has shape (n,m) 
         y16, y50, y84 = np.percentile(y, [16, 50, 84], axis=0) # each has shape (m,) 
-        lr_plot_16 = lr0 * 10**y16
-        lr_plot_50 = lr0 * 10**y50
+        lr_plot_16 = lr0 * 10**y16 # lr = lr0 * 10**(alpha + beta*xplot)
+        lr_plot_50 = lr0 * 10**y50 
         lr_plot_84 = lr0 * 10**y84
         # Add posterior predictive band (includes ε ~ N(0, σ^2) in dex) 
         rng = np.random.default_rng(123)
@@ -566,10 +666,28 @@ def show_and_plot_results(N_runs,dir, ax, lr0, lx0, colour, colour_line, show_al
 
         # Parameter-uncertainty-only band
         ax.plot(lx_plot, lr_plot_16, '--', color=colour_line, lw=1, zorder=6) # label='68% band (params)'
+        if testing:
+            ax.plot(lx_plot, lr_plot_50, '-', color="green", lw=1, zorder=6)
+            ax.plot(lx_plot, lr_with_scatter_plot_50, '-', color="orange", lw=1, zorder=6)
         ax.plot(lx_plot, lr_plot_84, '--', color=colour_line, lw=1, zorder=6)
         ax.fill_between(lx_plot, lr_plot_16, lr_plot_84, facecolor= colour_line, alpha=0.07)
         # Uncertainty band with scatter
         ax.fill_between(lx_plot, lr_with_scatter_plot_16, lr_with_scatter_plot_84, alpha=0.07, facecolor=colour_line) # , label='68% band (predictive)' # alpha=0.07
+
+
+        if testing:
+            # For testing
+            x_test  = 2e30
+            y_test = lr0 * 10**(alpha) * (x_test/lx0)**(beta)
+            plt.scatter(x_test,y_test* 10**(sigma), color='green', zorder=10)
+            plt.scatter(x_test, y_test* 10**(-sigma), color='green', zorder=10)
+
+            x_test  = 1e35
+            y_test = lr0 * 10**(alpha) * (x_test/lx0)**(beta)
+            plt.scatter(x_test,y_test* 10**(sigma), color='green', zorder=10)
+            plt.scatter(x_test, y_test* 10**(-sigma), color='green', zorder=10)
+
+
 
 
     if show_alt_uncertainty_methods:
@@ -592,33 +710,24 @@ def show_and_plot_results(N_runs,dir, ax, lr0, lx0, colour, colour_line, show_al
         ax.fill_between(lx_plot, minline, maxline, facecolor='purple', alpha=0.07)
 
 
-        ## ALTERNATIVE: Plot the percentiles of the median results (length n=N_runs) -- the uncertainty will be smaller
-        # alpha_50 has length (n,1)
-        #y = alpha_50[:, None] + beta_50[:, None]*x_plot[None, :] #  y has shape (n,m) 
-        #y16 = alpha_16[: , None] + beta_16[: , None]*x_plot[None, :]
-        #y84 = alpha_84[: , None] + beta_84[: , None]*x_plot[None, :]
-        #lr_plot_16 = lr0* 10**(np.mean(y16, axis=0))
-        #lr_plot_84 = lr0* 10**(np.mean(y84, axis=0))
-        # Add scatter (using the median sigma from each run)
-        #rng = np.random.default_rng(123)
-        #y_with_scatter_u = y84 +  sigma_50[:, None]
-        #y_with_scatter_l = y16 - sigma_50[:, None]
-        #lr_with_scatter_plot_16 = lr0* 10**(np.mean(y_with_scatter_l, axis=0))
-        #lr_with_scatter_plot_84 = lr0* 10**(np.mean(y_with_scatter_u, axis=0))
-        #ax.plot(lx_plot, lr_plot_16, '--', color='black', lw=1, label=f'$1$-$\sigma$ contours')
-        #ax.plot(lx_plot, lr_plot_84, '--', color= 'black', lw=1)
-        #ax.fill_between(lx_plot, lr_plot_16, lr_plot_84, facecolor='grey', alpha=0.07)
-        #ax.fill_between(lx_plot, lr_with_scatter_plot_16, lr_with_scatter_plot_84, facecolor='grey', alpha=0.15, label=f'$1$-$\sigma$ with scatter') # hatch='///',
-
-
-
+        
 
 
 def linmix_results(N_runs =1, names = None, interp=False, type_source=None, include_Fr_uplims=True, save_name=None, show_alt_uncertainty_methods=False, gx_339_filtered=False, plot_unc=True):
     """
     Plot the results after running linmix with distance corrections -- plot all results together.
 
-    Use names = ["...", "..."] if we do not want to include all the sources.
+    Parameters:
+    -----------
+    - N_runs: the number of iterations that were run (i.e. the number of times that linmix was run with different distance corrections)
+    - names: a list of source names to include in the analysis. Use names = ["...", "..."] if we do not want to include all the sources.
+    - interp: a boolean indicating whether to use interpolated or paired LrLx data.
+    - type_source: the type of source to include in the analysis -- "BH" or "NS"
+    - include_Fr_uplims: whether to include Fr upper limits in the analysis
+    - save_name: the name of the file to save the plot as (if None, will not save)
+    - show_alt_uncertainty_methods: whether to show the results from the alternative methods of calculating the uncertainties
+    - gx_339_filtered: whether to filter the data for GX 339-4 to exclude the additional branch
+    - plot_unc: whether to plot the uncertainty region around the best-fit line
     """
 
 
@@ -658,7 +767,7 @@ def linmix_results(N_runs =1, names = None, interp=False, type_source=None, incl
      
 
     ## PLOT DATA
-    lr0, lx0, lr, dlr, delta_radio, lx, dlx_l, dlx_u, delta_xrays, source_names, unique_names, unique_D, unique_D_prob, t = get_data_arrays(names = names, interp=interp, rerun = False, save=False, incl_Fr_uplims=include_Fr_uplims, type_source=type_source, gx_339_filtered=gx_339_filtered)
+    lr0, lx0, lr, dlr, delta_radio, lx, dlx_l, dlx_u, delta_xrays, source_names, unique_names, unique_D, unique_D_prob, t = get_data_arrays(names = names, interp=interp, rerun = False, save=False,incl_Fx_uplims =False, incl_Fr_uplims=include_Fr_uplims, type_source=type_source, gx_339_filtered=gx_339_filtered)
     plot, caps, bars = ax.errorbar(lx, lr, yerr=dlr, xerr=[dlx_l, dlx_u], fmt='o', ms=5, mec=colour, mfc=colour, uplims=~delta_radio,  xuplims=~delta_xrays, capsize=0.5, ecolor="black", elinewidth=0.4, zorder=3)
     for cap in caps:
         cap.set_color('black')      # Set cap color
@@ -668,7 +777,8 @@ def linmix_results(N_runs =1, names = None, interp=False, type_source=None, incl
         bar.set_color('black')
     
 
-    show_and_plot_results(N_runs, dir, ax, lr0, lx0, colour, colour_line, show_alt_uncertainty_methods, plot_unc = plot_unc)
+    # Use the helper function defined above
+    show_and_plot_results(N_runs, dir, ax, lr0, lx0, colour_line, show_alt_uncertainty_methods, plot_unc = plot_unc, testing=True)
 
 
     ## PLOT LAYOUT
@@ -706,10 +816,8 @@ def linmix_results(N_runs =1, names = None, interp=False, type_source=None, incl
 
     plt.xlim([min_Lx,max_Lx])
     plt.ylim([min_Lr,max_Lr_2])
-    ax.set_xlabel(r"1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]")
-    ax.set_ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
-    #ax.set_xlabel(r'$L_X$ [erg s$^{-1}$]')
-    #ax.set_ylabel(r'$L_R$ [erg s$^{-1}$]')
+    ax.set_xlabel(r"1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]") #ax.set_xlabel(r'$L_X$ [erg s$^{-1}$]')
+    ax.set_ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]') #ax.set_ylabel(r'$L_R$ [erg s$^{-1}$]')
     ax.set_xscale('log', base=10)
     ax.set_yscale('log', base=10)   
     ax.xaxis.set_major_locator(plt.LogLocator(base=10.0, numticks=10))
@@ -731,8 +839,13 @@ def linmix_results(N_runs =1, names = None, interp=False, type_source=None, incl
 def linmix_results_BH_vs_NS(N_runs=1, interp=True, save_name="BH_vs_NS"):
     """
     Plot the results after running linmix with distance corrections -- plot the BH vs NS results.
+    This is Figure 9 in the paper. 
 
-    Use names = ["...", "..."] if we do not want to include all the sources.
+    Parameters:
+    -----------
+    - N_runs: the number of iterations that were run (i.e. the number of times that linmix was run with different distance corrections)
+    - interp: a boolean indicating whether to use interpolated or paired LrLx data
+    - save_name: the name of the file to save the plot as (if None, will not save)
     """
 
     if interp: dir = "./MCMC_parfiles_interp"
@@ -747,7 +860,7 @@ def linmix_results_BH_vs_NS(N_runs=1, interp=True, save_name="BH_vs_NS"):
     fig = plt.figure(figsize=(9,6), constrained_layout=True)
     ax = fig.add_subplot(1,1,1)
 
-    for type_source in ["BH", "NS"]: # , "NS_no_Fr_uplims"
+    for type_source in ["BH", "NS", "NS_no_Fr_uplims"]: 
         
         print(type_source)
 
@@ -770,7 +883,7 @@ def linmix_results_BH_vs_NS(N_runs=1, interp=True, save_name="BH_vs_NS"):
         
         ## PLOT DATA
         if type_source!="NS_no_Fr_uplims":
-    
+
             lr0, lx0, lr, dlr, delta_radio, lx, dlx_l, dlx_u, delta_xrays, source_names, unique_names, unique_D, unique_D_prob, t = get_data_arrays(names = None, interp=interp, rerun = False, save=False, incl_Fr_uplims=True, type_source=type_source)
             plot, caps, bars = ax.errorbar(lx, lr, yerr=dlr, xerr=[dlx_l, dlx_u], fmt='o', ms=5, mec=colour, mfc=colour, uplims=~delta_radio,  xuplims=~delta_xrays, capsize=0.5, ecolor="black", elinewidth=0.4, zorder=zorder)
             for cap in caps:
@@ -781,13 +894,13 @@ def linmix_results_BH_vs_NS(N_runs=1, interp=True, save_name="BH_vs_NS"):
                 bar.set_color('black')
     
         ## PLOT RESULTS
-        if type_source=="NS_no_Fr_uplims": show_and_plot_results(N_runs, dir_new, ax, lr0, lx0, colour, colour_line, plot_unc = False, best_fit_fmt = "-.", show_alt_uncertainty_methods=False, zorder=zorder)
-        else: show_and_plot_results(N_runs, dir_new, ax, lr0, lx0, colour, colour_line, plot_unc = True, best_fit_fmt = '-', show_alt_uncertainty_methods=False, zorder=zorder)
-
-
+        else: # do not show the uncertainty band 
+            show_and_plot_results(N_runs, dir_new, ax, lr0, lx0, colour_line, plot_unc = False, best_fit_fmt = "-.", show_alt_uncertainty_methods=False, zorder=zorder)
+        
 
     ## PLOT LAYOUT
 
+    ## Create best fit legend (within plot) in black
     handles, labels = ax.get_legend_handles_labels()
     # Ensure the 'Best fit' label is identified first
     sorted_pairs = sorted(zip(labels, handles), key=lambda x: 0 if r'$\beta$' in x[0] else 1)
@@ -795,13 +908,7 @@ def linmix_results_BH_vs_NS(N_runs=1, interp=True, save_name="BH_vs_NS"):
     bestfit_legend = ax.legend(sorted_handles, sorted_labels, fontsize=10, loc="upper left", bbox_transform=ax.transAxes, title="Best fits", labelspacing=0.6)   
     ax.add_artist(bestfit_legend)
     
-    # Create state legend (within plot) in black
-    #states = ["HS", "QS"]
-    #state_legend_handles = [plt.Line2D([0], [0], color='none', linestyle='None', markersize=1, marker=".", label=state) for state in states] 
-    #phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)  
-    #state_legend_handles.append(phantom)
-    #state_legend = ax.legend(handles=state_legend_handles, loc="upper left", bbox_to_anchor=(0.277, 0.815), bbox_transform=ax.transAxes, title="States", handlelength=0, fontsize=10) # bbox_to_anchor=(0.125, 0.578)
-    #ax.add_artist(state_legend)  
+    ## Create state legend (within plot) in black
     states = ["HS","QS"]
     states_str = ", ".join(states)
     text = f"{states_str}"
@@ -810,8 +917,7 @@ def linmix_results_BH_vs_NS(N_runs=1, interp=True, save_name="BH_vs_NS"):
     ax.add_artist(state_legend)
 
 
-
-    # Create type legend (within plot) in black
+    ## Create type legend (within plot) in black
     types = ["BH & BHC", "NS"]
     colours = ["#D40404", "#0303D6"]
     type_legend_handles = [plt.Line2D([0], [0], marker='o', color=colour, linestyle='None', markersize=6, label=type_source) for type_source, colour in zip(types,colours)] 
@@ -821,13 +927,11 @@ def linmix_results_BH_vs_NS(N_runs=1, interp=True, save_name="BH_vs_NS"):
     ax.add_artist(type_legend) 
 
 
-
+    ## Plot formatting
     plt.xlim([min_Lx,max_Lx])
     plt.ylim([min_Lr,max_Lr_2])
-    ax.set_xlabel(r"1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]")
-    ax.set_ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
-    #ax.set_xlabel(r'$L_X$ [erg s$^{-1}$]')
-    #ax.set_ylabel(r'$L_R$ [erg s$^{-1}$]')
+    ax.set_xlabel(r"1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]") #ax.set_xlabel(r'$L_X$ [erg s$^{-1}$]')
+    ax.set_ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]') #ax.set_ylabel(r'$L_R$ [erg s$^{-1}$]')
     ax.set_xscale('log', base=10)
     ax.set_yscale('log', base=10)   
     ax.xaxis.set_major_locator(plt.LogLocator(base=10.0, numticks=10))
@@ -849,14 +953,22 @@ def linmix_results_BH_vs_NS(N_runs=1, interp=True, save_name="BH_vs_NS"):
 def linmix_results_individual_sources(N_runs=1, names=None , interp=True, save_name="individual_sources"):
     """
     Plot the results after running linmix with distance corrections -- plot the individual sources.
+    This is plot 11 in the paper. 
+
+    Parameters:
+    -----------
+    - N_runs: the number of iterations that were run (i.e. the number of times that linmix was run with different distance corrections)
+    - names: a list of source names to include in the analysis. Use names = ["...", "..."] if we do not want to include all the sources.
+    - interp: a boolean indicating whether to use interpolated or paired LrLx data
+    - save_name: the name of the file to save the plot as (if None, will not save)
     """
 
     if interp: dir = "./MCMC_parfiles_interp"
     else: dir = "./MCMC_parfiles_paired"
 
+
     ##############################
     ## PLOT RESULTS
-
 
     fig = plt.figure(figsize=(9,6), constrained_layout=True)
     ax = fig.add_subplot(1,1,1)
@@ -889,33 +1001,34 @@ def linmix_results_individual_sources(N_runs=1, names=None , interp=True, save_n
             bar.set_color('black')
     
         ## PLOT RESULTS
-        show_and_plot_results(N_runs, dir_new, ax, lr0, lx0, colour, colour_line, plot_unc = True, best_fit_fmt = '-', show_alt_uncertainty_methods=False, best_fit_legend_only_beta=True)
+        show_and_plot_results(N_runs, dir_new, ax, lr0, lx0, colour_line, plot_unc = True, best_fit_fmt = '-', show_alt_uncertainty_methods=False, best_fit_legend_only_beta=True)
 
 
     ## PLOT LAYOUT
     
-    # Create state legend (within plot) in black
+    ## Create state legend (within plot) in black
     states = ["HS","QS"]
     states_str = ", ".join(states)
     text = f"{states_str}"
     dummy = plt.Line2D([], [], linestyle="none")
-    state_legend = ax.legend(handles=[dummy], labels=[text], loc="upper left", bbox_to_anchor=(0.24, 1.0), title="States", handlelength=0, fontsize=10) # bbox_to_anchor=(0.0, 0.68)
+    state_legend = ax.legend(handles=[dummy], labels=[text], loc="upper left", bbox_to_anchor=(0.235, 1.0), title="States", handlelength=0, fontsize=10) # bbox_to_anchor=(0.0, 0.68)
     ax.add_artist(state_legend)
         
 
 
-    # Create name legend (within plot) in black
+    ## Create name legend (within plot) in black
     all_colours = [colours.get(name, "#000000ff") for name in names]
     # For the names array, replace "-" with "–"
     names_text = unique_names.copy()
     names_text = [name.replace("-", "–") for name in names]
-    name_legend_handles = [plt.Line2D([0], [0], marker='o', color=colour, linestyle='None', markersize=6, label=rf"{name} ($D$ = {D} kpc)") for name, colour, D in zip(names_text, all_colours, np.array(distances))]
+    name_legend_handles = [plt.Line2D([0], [0], marker='o', color=colour, linestyle='None', markersize=6, label=rf"{name} ($D$ = {D:2.2f} kpc)") for name, colour, D in zip(names_text, all_colours, np.array(distances))]
     phantom = plt.Line2D([0], [0], color='none', label='\u200A' * 48)
     name_legend_handles.append(phantom)
     name_legend = ax.legend(handles=name_legend_handles, loc="lower right", fontsize=10)
     ax.add_artist(name_legend)
 
 
+    ## Create best fit legend (within plot) in black
     handles, labels = ax.get_legend_handles_labels()
     # Ensure the 'Best fit' label is identified first
     sorted_pairs = sorted(zip(labels, handles), key=lambda x: 0 if r'$\beta$' in x[0] else 1)
@@ -923,12 +1036,11 @@ def linmix_results_individual_sources(N_runs=1, names=None , interp=True, save_n
     ax.legend(sorted_handles, sorted_labels, fontsize=10, loc="upper left", title="Best Fits")     
 
 
+    ## Plot formatting
     plt.xlim([min_Lx,max_Lx])
     plt.ylim([min_Lr,max_Lr_2])
-    ax.set_xlabel(r"1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]")
-    ax.set_ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]')
-    #ax.set_xlabel(r'$L_X$ [erg s$^{-1}$]')
-    #ax.set_ylabel(r'$L_R$ [erg s$^{-1}$]')
+    ax.set_xlabel(r"1–10 keV Unabsorbed X-ray Luminosity [erg s$^{-1}$]") #ax.set_xlabel(r'$L_X$ [erg s$^{-1}$]')
+    ax.set_ylabel(r'1.28 GHz Radio Luminosity [erg s$^{-1}$]') #ax.set_ylabel(r'$L_R$ [erg s$^{-1}$]')
     ax.set_xscale('log', base=10)
     ax.set_yscale('log', base=10)   
     ax.xaxis.set_major_locator(plt.LogLocator(base=10.0, numticks=10))

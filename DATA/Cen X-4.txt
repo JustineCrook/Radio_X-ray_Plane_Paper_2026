@@ -6,7 +6,7 @@ NS,332.242,23.881, [https://simbad.u-strasbg.fr/simbad/sim-id?Ident=Cen%20X-4],1
 
 ## OBS_METADATA
 # xray_CI, xray_obs_ref, radio_obs_ref, extra_xray_text, extra_radio_text
-68, [van den Eijnden et al. 2022 & https://ui.adsabs.harvard.edu/abs/2022MNRAS.516.2641V/abstract], [van den Eijnden et al. 2022 & https://ui.adsabs.harvard.edu/abs/2022MNRAS.516.2641V/abstract] , , 
+68, [van den Eijnden et al. (2022) & https://ui.adsabs.harvard.edu/abs/2022MNRAS.516.2641V/abstract], [van den Eijnden et al. (2022) & https://ui.adsabs.harvard.edu/abs/2022MNRAS.516.2641V/abstract] , , 
 
 
 
