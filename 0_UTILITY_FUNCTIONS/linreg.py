@@ -688,6 +688,15 @@ def show_and_plot_results(N_runs,dir, ax, lr0, lx0, colour_line, show_alt_uncert
             plt.scatter(x_test, y_test* 10**(-sigma), color='green', zorder=10)
 
 
+            # Plot posterior samples (y)
+            for i in range(1000): # plot 1000 random posterior samples
+                idx = np.random.randint(all_alphas.size)
+                y_sample = all_alphas[idx] + all_betas[idx] * x_plot
+                lr_sample = lr0 * 10**y_sample
+                plt.plot(lx_plot, lr_sample, color='orange', alpha=0.1, zorder=5)
+
+
+
 
 
     if show_alt_uncertainty_methods:
@@ -892,6 +901,8 @@ def linmix_results_BH_vs_NS(N_runs=1, interp=True, save_name="BH_vs_NS"):
                 cap.set_markersize(4) 
             for bar in bars:
                 bar.set_color('black')
+
+            show_and_plot_results(N_runs, dir_new, ax, lr0, lx0, colour_line, plot_unc = True, best_fit_fmt = "-", show_alt_uncertainty_methods=False, zorder=zorder)
     
         ## PLOT RESULTS
         else: # do not show the uncertainty band 

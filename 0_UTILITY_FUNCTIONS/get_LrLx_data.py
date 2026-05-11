@@ -12,6 +12,7 @@ import numpy as np
 import os
 import glob
 from pathlib import Path
+import csv
 
 
 from get_data import convert_Fr, convert_Fx, read_data
@@ -417,11 +418,12 @@ def get_all_LrLx_data(names = None, interp=False, rerun = True, save=False, inte
         # Write to a text file
         if interp: name = f'../DATA/INTERPOLATED/interpolated_{interp_method}_lrlx.txt' 
         else: name = f'../DATA/PAIRED/paired_lrlx.txt'
-        with open(name, 'w') as f:
-            f.write(','.join(columns_to_write) + '\n')
+        with open(name, 'w', newline='') as f:
+            writer = csv.writer(f)
+            # Write header
+            writer.writerow(columns_to_write)
             for _, row in df_save[columns_to_write].iterrows():
-                row_str = ','.join(str(row[col]) for col in columns_to_write)
-                f.write(row_str + '\n')
+                writer.writerow([row[col] for col in columns_to_write])
 
         print(f"Saved the LrLx data for all sources to {name}")
 
